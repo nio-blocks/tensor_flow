@@ -1,4 +1,5 @@
 from nio.block.base import Block
+from nio.block.terminals import input
 from nio.properties import *
 from enum import Enum
 import tensorflow as tf
@@ -14,6 +15,8 @@ import tensorflow as tf
                                 # title='Activation Function',
                                 # default=ActivationFunctions.softmax)
 
+@input('predict')
+@input('train')
 class NeuralNetwork(Block):
 
     version = VersionProperty('0.1.0')
@@ -42,7 +45,7 @@ class NeuralNetwork(Block):
         sess.run(tf.global_variables_initializer())
         super().start()
 
-    def process_signals(self, signals):
+    def process_signals(self, signals, input_id=None):
         for signal in signals:
             pass
         self.notify_signals(signals)
