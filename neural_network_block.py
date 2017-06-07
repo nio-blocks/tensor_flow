@@ -24,7 +24,7 @@ class NeuralNetwork(Block):
 
     # set random seed for repeatable computations
     tf.set_random_seed(0)
-    # input images [minibatch size, width, height, color channels]
+    # input images [minibatch size, height, width, color channels]
     X = tf.placeholder(tf.float32, [None, 28, 28, 1])
     # desired output
     Y_ = tf.placeholder(tf.float32, [None, 10])
