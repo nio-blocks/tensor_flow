@@ -12,12 +12,8 @@ class MNISTImageLoader(Block):
     version = VersionProperty('0.1.0')
     batch_size = Property(title='Images per Batch', default=100)
 
-    def __init__(self):
-        self.mnist = None
-        super().__init__()
-
     def start(self):
-        self.mnist = mnist_data.read_data_sets("data",
+        self.mnist = mnist_data.read_data_sets('data',
                                                one_hot=True,
                                                reshape=False,
                                                validation_size=0)
