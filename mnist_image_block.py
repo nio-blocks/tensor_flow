@@ -23,7 +23,7 @@ class MNISTImageLoader(Block):
                                                validation_size=0)
         super().start()
 
-    def process_signas(self):
+    def process_signals(self, signals, input_id=None):
         for signal in signals:
             count = self.batch_size(signal)
             temp = {}
@@ -31,5 +31,4 @@ class MNISTImageLoader(Block):
                 temp['batch'] = self.mnist.train.next_batch(count)
             else:
                 temp['batch'] = self.mnist.test.next_batch(count)
-            temp['batch_size'] = len(temp.batch[0])
             self.notify_signals([Signal(temp)])
