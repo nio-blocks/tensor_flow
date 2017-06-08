@@ -31,5 +31,5 @@ Input
 Output
 ---------
 A list of one signal for each input signal. The new signal has the attribute 
-`batch` which is a tuple of two arrays, each with depth <batch_size>. The first 
+`batch` which is a tuple of two arrays, each with depth `batch_size`. The first 
 array is image pixel data and the second is image labels (one-hot encoded).
