@@ -1,3 +1,12 @@
+TensorFlow
+===========
+Collection of blocks to implement TensorFlow in n.io services.
+
+Dependencies
+----------------
+* [tensorflow](https://github.com/tensorflow/tensorflow)
+* [numpy](https://github.com/numpy/numpy)
+
 MNISTImageLoader
 ===========
 Generate 4-Dimensional numpy arrays from MNIST handwriting dataset using data 
@@ -13,11 +22,6 @@ Additional information on this dataset: http://yann.lecun.com/exdb/mnist/
 Properties
 --------------
 * `batch_size`: How many images and labels (array depth) to load at once.
-
-Dependencies
-----------------
-* [tensorflow](https://github.com/tensorflow/tensorflow)
-* [numpy](https://github.com/numpy/numpy)
 
 Commands
 ----------------
