@@ -25,11 +25,12 @@ None
 
 Input
 -------
-* Train: Any list of signals
-* Test: Any list of signals
+* Train: Any list of signals, returns data from Training dataset
+* Test: Any list of signals, returns data from Testing dataset
 
 Output
 ---------
 A list of one signal for each input signal. The new signal has the attribute 
-`batch` which is a tuple of two arrays, each with depth `batch_size`. The first 
-array is image pixel data and the second is image labels (one-hot encoded).
+`batch` which is a tuple of two arrays from the dataset specified by the input 
+node used, each with depth `batch_size`. The first array is image pixel data 
+and the second is image labels (one-hot encoded).
