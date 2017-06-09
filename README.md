@@ -25,8 +25,8 @@ None
 
 Input
 -------
-* Train: Any list of signals, returns data from Training dataset
-* Test: Any list of signals, returns data from Testing dataset
+* `train`: Any list of signals, returns data from training dataset
+* `test`: Any list of signals, returns data from testing dataset
 
 Output
 ---------
