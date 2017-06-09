@@ -64,14 +64,9 @@ class NeuralNetwork(Block):
     def process_signals(self, signals, input_id=None):
         for signal in signals:
             if input_id == 'train':
-                acc, loss = self._train(signal)
-        self.notify_signals([Signal({'accuracy': acc, 'loss': loss})])
+                acc, loss = self._train(signal)[1:]
+                self.notify_signals([Signal({'accuracy': acc, 'loss': loss})])
 
     def _train(self, signal):
         batch_X, batch_Y = signal.batch
-        # back-propogation
-        self.sess.run(self.train_step,
-                      feed_dict={self.X: batch_X, self.Y_: batch_Y})
-        # stats for output
-        # todo: include in call above with train_step?
-        return self.sess.run([self.accuracy, self.loss_function], feed_dict={self.X: batch_X, self.Y_: batch_Y})
+        return self.sess.run([self.train_step, self.accuracy, self.loss_function], feed_dict={self.X: batch_X, self.Y_: batch_Y})
