@@ -24,32 +24,33 @@ class NeuralNetwork(Block):
     version = VersionProperty('0.1.0')
     # layers = ListProperty(Layers, title='Network Layers', default=[])
 
-    # set random seed for repeatable computations
-    tf.set_random_seed(0)
-    # input images [minibatch size, height, width, color channels]
-    # todo: verify order of height/width args
-    X = tf.placeholder(tf.float32, [None, 28, 28, 1])
-    # desired output
-    Y_ = tf.placeholder(tf.float32, [None, 10])
-    # weights, 784 inputs to 10 neurons
-    W = tf.Variable(tf.zeros([784, 10]))
-    # biases, one per neuron
-    b = tf.Variable(tf.zeros([10]))
-    # flatten images
-    XX = tf.reshape(X, [-1, 784])
-
     def __init__(self):
         self.loss_function = None
         self.train_Step = None
         self.sess = None
         self.correct_prediction = None
         self.accuracy = None
+        self.X = None
+        self.Y_ = None
         super().__init__()
 
     def start(self):
+        # set random seed for repeatable computations
+        tf.set_random_seed(0)
+        # input images [minibatch size, height, width, color channels]
+        # todo: verify order of height/width args
+        self.X = tf.placeholder(tf.float32, [None, 28, 28, 1])
+        # desired output
+        self.Y_ = tf.placeholder(tf.float32, [None, 10])
+        # weights, 784 inputs to 10 neurons
+        W = tf.Variable(tf.zeros([784, 10]))
+        # biases, one per neuron
+        b = tf.Variable(tf.zeros([10]))
+        # flatten images
+        XX = tf.reshape(self.X, [-1, 784])
         # build the model, Y = computed output
-        Y = tf.nn.softmax(tf.matmul(self.XX, self.W) + self.b)
-        # define loss function
+        Y = tf.nn.softmax(tf.matmul(XX, W) + b)
+        # define loss function, cross-entropy
         self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y)) * 1000.0
         # define training step
         self.train_step = tf.train.GradientDescentOptimizer(0.005).minimize(self.loss_function)
