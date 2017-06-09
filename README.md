@@ -30,7 +30,6 @@ Input
 
 Output
 ---------
-A list of one signal for each input signal. The new signal has the attribute 
-`batch` which is a tuple of two arrays from the dataset specified by the input 
-node used, each with depth `batch_size`. The first array is image pixel data 
-and the second is image labels (one-hot encoded).
+`{'batch': (images * batch_size, labels)}`
+
+This data type is numpy.ndarray (float32) and is ready to use in TensorFlow blocks.
