@@ -26,7 +26,7 @@ Input
 
 Output
 ---------
-`{'loss': 0-1.0, 'accuracy': 1-1.0}`
+`{'loss': 0 to 1.0, 'accuracy': 0 to 1.0}`
 
 
 MNISTImageLoader
