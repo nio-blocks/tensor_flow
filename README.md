@@ -9,11 +9,11 @@ Dependencies
 
 NeuralNetwork
 ===========
-compute the things
+Hard-coded 784-10 softmax network, executes one training step per input signal.
 
 Properties
 --------------
-* `things`: things
+None
 
 Commands
 ----------------
@@ -21,12 +21,12 @@ None
 
 Input
 -------
-* `train`: Any list of signals
-* `predict`: Any list of signals
+* `train`: `{'batch': (images * batch_size, labels)}`
+* `predict`: Unused
 
 Output
 ---------
-computed things
+`{'loss': 0-1.0, 'accuracy': 1-1.0}`
 
 
 MNISTImageLoader
