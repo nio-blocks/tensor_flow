@@ -32,4 +32,5 @@ Output
 ---------
 `{'batch': (images * batch_size, labels)}`
 
-This data type is numpy.ndarray (float32) and is ready to use in TensorFlow blocks.
+This data type is numpy.ndarray (float32) and is ready to use in TensorFlow 
+blocks.
