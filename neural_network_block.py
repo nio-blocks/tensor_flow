@@ -67,6 +67,11 @@ class NeuralNetwork(Block):
                 acc, loss = self._train(signal)[1:]
                 self.notify_signals([Signal({'accuracy': acc, 'loss': loss})])
 
+    def stop(self):
+        # todo: use context manager and remove this
+        self.sess.close()
+        super().stop()
+
     def _train(self, signal):
         batch_X, batch_Y = signal.batch
         return self.sess.run([self.train_step, self.accuracy, self.loss_function], feed_dict={self.X: batch_X, self.Y_: batch_Y})
