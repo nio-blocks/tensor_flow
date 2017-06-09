@@ -7,6 +7,28 @@ Dependencies
 * [tensorflow](https://github.com/tensorflow/tensorflow)
 * [numpy](https://github.com/numpy/numpy)
 
+NeuralNetwork
+===========
+compute the things
+
+Properties
+--------------
+* `things`: things
+
+Commands
+----------------
+None
+
+Input
+-------
+* `train`: Any list of signals
+* `predict`: Any list of signals
+
+Output
+---------
+computed things
+
+
 MNISTImageLoader
 ===========
 Generate 4-Dimensional numpy arrays from MNIST handwriting dataset using data 
