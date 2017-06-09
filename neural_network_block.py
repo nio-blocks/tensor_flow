@@ -1,7 +1,8 @@
+from enum import Enum
 from nio.block.base import Block
 from nio.block.terminals import input
 from nio.properties import *
-from enum import Enum
+from nio.signal.base import Signal
 import tensorflow as tf
 
 
@@ -63,10 +64,14 @@ class NeuralNetwork(Block):
     def process_signals(self, signals, input_id=None):
         for signal in signals:
             if input_id == 'train':
-                self._training(signal)
-        self.notify_signals(signals)
+                acc, loss = self._train(signal)
+        self.notify_signals([Signal({'accuracy': acc, 'loss': loss})])
 
-    def _training(self, signal):
+    def _train(self, signal):
         batch_X, batch_Y = signal.batch
+        # back-propogation
         self.sess.run(self.train_step,
                       feed_dict={self.X: batch_X, self.Y_: batch_Y})
+        # stats for output
+        # todo: include in call above with train_step?
+        return self.sess.run([self.accuracy, self.loss_function], feed_dict={self.X: batch_X, self.Y_: batch_Y})
