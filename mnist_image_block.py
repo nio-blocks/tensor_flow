@@ -1,7 +1,7 @@
 from nio.block.base import Block
 from nio.block.terminals import input
-from nio.signal.base import Signal
 from nio.properties import *
+from nio.signal.base import Signal
 from tensorflow.examples.tutorials.mnist import input_data as mnist_data
 
 
