@@ -24,16 +24,6 @@ class NeuralNetwork(Block):
     version = VersionProperty('0.1.0')
     # layers = ListProperty(Layers, title='Network Layers', default=[])
 
-    def __init__(self):
-        self.loss_function = None
-        self.train_Step = None
-        self.sess = None
-        self.correct_prediction = None
-        self.accuracy = None
-        self.X = None
-        self.Y_ = None
-        super().__init__()
-
     def start(self):
         # set random seed for repeatable computations
         tf.set_random_seed(0)
