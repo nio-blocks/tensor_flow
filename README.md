@@ -21,12 +21,12 @@ None
 
 Input
 -------
-* `train`: `{'batch': (images * batch_size, labels)}`
+* `train`: `{'batch': (ndarray(<images>), ndarray(<labels>))}`
 * `predict`: Unused
 
 Output
 ---------
-`{'loss': 0 to 1.0, 'accuracy': 0 to 1.0}`
+`{'loss': <float>, 'accuracy': <float>}`
 
 
 MNISTImageLoader
@@ -43,7 +43,10 @@ Additional information on this dataset: http://yann.lecun.com/exdb/mnist/
 
 Properties
 --------------
-* `batch_size`: How many images and labels (array depth) to load at once.
+* `batch_size`: (default=100) How many images and labels (array depth) to load 
+at once.
+* `shuffle`: (hidden, default=True) If False images will be returned in 
+repeatable order
 
 Commands
 ----------------
@@ -56,7 +59,7 @@ Input
 
 Output
 ---------
-`{'batch': (images * batch_size, labels)}`
+`{'batch': (ndarray(<images>), ndarray(<labels>))}`
 
-This data type is numpy.ndarray (float32) and is ready to use in TensorFlow 
-blocks.
+This data type is numpy.ndarray (float32) and is ready to use by NeuralNetwork 
+block.
