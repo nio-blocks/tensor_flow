@@ -11,6 +11,7 @@ class MNISTImageLoader(Block):
 
     version = VersionProperty('0.1.0')
     batch_size = Property(title='Images per Batch', default=100)
+    shuffle = BoolProperty(title='Shuffle Images', default=True, visible=False)
 
     def start(self):
         self.mnist = mnist_data.read_data_sets('data',
@@ -24,7 +25,11 @@ class MNISTImageLoader(Block):
             count = self.batch_size(signal)
             temp = {}
             if input_id == 'train':
-                temp['batch'] = self.mnist.train.next_batch(count)
+                temp['batch'] = self.mnist.train.next_batch(
+                    count,
+                    shuffle=self.shuffle.value)
             else:
-                temp['batch'] = self.mnist.test.next_batch(count)
+                temp['batch'] = self.mnist.test.next_batch(
+                    count,
+                    shuffle=self.shuffle.value)
             self.notify_signals([Signal(temp)])
