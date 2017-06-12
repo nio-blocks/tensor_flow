@@ -22,14 +22,11 @@ class MNISTImageLoader(Block):
 
     def process_signals(self, signals, input_id=None):
         for signal in signals:
-            count = self.batch_size(signal)
+            kwargs = {'batch_size': self.batch_size(signal),
+                      'shuffle': self.shuffle(signal)}
             temp = {}
             if input_id == 'train':
-                temp['batch'] = self.mnist.train.next_batch(
-                    count,
-                    shuffle=self.shuffle.value)
+                temp['batch'] = self.mnist.train.next_batch(**kwargs)
             else:
-                temp['batch'] = self.mnist.test.next_batch(
-                    count,
-                    shuffle=self.shuffle.value)
+                temp['batch'] = self.mnist.test.next_batch(**kwargs)
             self.notify_signals([Signal(temp)])
