@@ -30,4 +30,3 @@ class MNISTImageLoader(Block):
             else:
                 self.notify_signals(
                     [Signal({'batch': self.mnist.test.next_batch(**kwargs)})])
-            self.notify_signals([Signal(temp)])
