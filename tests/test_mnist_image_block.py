@@ -9,9 +9,7 @@ class TestMNISTImageLoader(NIOBlockTestCase):
 
     @patch('tensorflow.examples.tutorials.mnist.input_data.read_data_sets')
     def test_process_signals(self, mock_dataset):
-        """For each input signal call next_batch(batch_size) on the 
-        corresponding attribute of returned DataSet object.
-        """
+        """For each input signal call next_batch(batch_size)"""
         blk = MNISTImageLoader()
         self.configure_block(blk, {'batch_size': '{{ $foo }}' })
         blk.start()
@@ -19,7 +17,6 @@ class TestMNISTImageLoader(NIOBlockTestCase):
         blk.process_signals([Signal({'foo': 1})], input_id='test')
         blk.stop()
         # todo: assert mock_dataset args
-        print(mock_dataset.call_args_list)
         self.assert_num_signals_notified(2)
         self.assertDictEqual({'batch': ANY},
                              self.last_notified[DEFAULT_TERMINAL][0].to_dict())
