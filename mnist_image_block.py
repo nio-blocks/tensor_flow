@@ -40,15 +40,15 @@ class MNISTImageLoader(Block):
         super().start()
 
     def process_signals(self, signals, input_id=None):
-        # todo: notify a list of new signals instead of new list for each 
-        # signal
         # todo: signal attr for epoch count
+        output_signals = []
         for signal in signals:
             kwargs = {'batch_size': self.batch_size(signal),
                       'shuffle': self.shuffle(signal)}
             if input_id == 'train':
-                self.notify_signals(
-                    [Signal({'batch': self.mnist.train.next_batch(**kwargs)})])
+                output_signals.append(
+                    Signal({'batch': self.mnist.train.next_batch(**kwargs)}))
             else:
-                self.notify_signals(
-                    [Signal({'batch': self.mnist.test.next_batch(**kwargs)})])
+                output_signals.append(
+                    Signal({'batch': self.mnist.test.next_batch(**kwargs)}))
+        self.notify_signals(output_signals)

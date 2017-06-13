@@ -39,7 +39,7 @@ class TestMNISTImageLoader(NIOBlockTestCase):
             batch_size=100,
             shuffle=False)
 
-class Other(NIOBlockTestCase):
+class TestSignalLists(NIOBlockTestCase):
 
     def signals_notified(self, block, signals, output_id):
         """Override so that last_notified is list of signal lists instead of
@@ -49,11 +49,14 @@ class Other(NIOBlockTestCase):
     @patch('tensorflow.examples.tutorials.mnist.input_data.read_data_sets')
     def test_signal_lists(self, mock_dataset):
         """Notify a list of signals of equal length to signals received"""
-        input_signals = [Signal({'foo': 'bar'})] * 3
+        input_signals = [Signal()] * 3
         blk = MNISTImageLoader()
         self.configure_block(blk, {})
         blk.start()
         blk.process_signals(input_signals, input_id='train')
         blk.stop()
-        # assert that one list has been notified
+        # assert that one list has been notified ...
         self.assertEqual(len(self.last_notified[DEFAULT_TERMINAL]), 1)
+        # ... and it contains 3 signals
+        self.assertEqual(len(self.last_notified[DEFAULT_TERMINAL][-1]),
+                         len(input_signals))
