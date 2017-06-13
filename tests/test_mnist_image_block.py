@@ -7,56 +7,33 @@ from ..mnist_image_block import MNISTImageLoader
 
 class TestMNISTImageLoader(NIOBlockTestCase):
 
-    @patch('tensorflow.examples.tutorials.mnist.input_data.read_data_sets')
-    def test_process_signals(self, mock_dataset):
-        """For each input signal call next_batch(batch_size)"""
-        blk = MNISTImageLoader()
-        self.configure_block(blk, {'batch_size': '{{ $foo }}' })
-        blk.start()
-        blk.process_signals([Signal({'foo': 10})], input_id='train')
-        blk.process_signals([Signal({'foo': 1})], input_id='test')
-        blk.stop()
-        # todo: assert mock_dataset args
-        self.assert_num_signals_notified(2)
-        self.assertDictEqual({'batch': ANY},
-                             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
-        mock_dataset.return_value.train.next_batch.assert_called_once_with(
-            batch_size=10,
-            shuffle=True)
-        mock_dataset.return_value.test.next_batch.assert_called_once_with(
-            batch_size=1,
-            shuffle=True)
-
-    @patch('tensorflow.examples.tutorials.mnist.input_data.read_data_sets')
-    def test_shuffle_images(self, mock_dataset):
-        """Shuffle can be disabled for repeatable output."""
-        blk = MNISTImageLoader()
-        self.configure_block(blk, {'shuffle': False})
-        blk.start()
-        blk.process_signals([Signal()], input_id='train')
-        blk.stop()
-        mock_dataset.return_value.train.next_batch.assert_called_once_with(
-            batch_size=100,
-            shuffle=False)
-
-class TestSignalLists(NIOBlockTestCase):
-
     def signals_notified(self, block, signals, output_id):
-        """Override so that last_notified is list of signal lists instead of
-        list of signals"""
+        """Override so that last_notified is list of signal lists"""
         self.last_notified[output_id].append(signals)
 
     @patch('tensorflow.examples.tutorials.mnist.input_data.read_data_sets')
-    def test_signal_lists(self, mock_dataset):
-        """Notify a list of signals of equal length to signals received"""
-        input_signals = [Signal()] * 3
+    def test_process_signals(self, mock_dataset):
+        """For each input signal call next_batch(batch_size)"""
+        train_signals = [Signal({'batch_size': 10, 'shuffle': True})] * 2
+        test_signals = [Signal({'batch_size': 1, 'shuffle': False})]
         blk = MNISTImageLoader()
-        self.configure_block(blk, {})
+        self.configure_block(blk, {'batch_size': '{{ $batch_size }}',
+                                   'shuffle': '{{ $shuffle }}'})
         blk.start()
-        blk.process_signals(input_signals, input_id='train')
+        blk.process_signals(train_signals, input_id='train')
+        blk.process_signals(test_signals, input_id='test')
         blk.stop()
-        # assert that one list has been notified ...
-        self.assertEqual(len(self.last_notified[DEFAULT_TERMINAL]), 1)
-        # ... and it contains 3 signals
-        self.assertEqual(len(self.last_notified[DEFAULT_TERMINAL][-1]),
-                         len(input_signals))
+        mock_dataset.assert_called_once_with('data',
+                                             one_hot=True,
+                                             reshape=False,
+                                             validation_size=0)
+        self.assert_num_signals_notified(len(train_signals + test_signals))
+        for signals in self.last_notified[DEFAULT_TERMINAL]:
+            for signal in signals:
+                self.assertDictEqual({'batch': ANY}, signal.to_dict())
+        for i, arg in enumerate(
+                mock_dataset.return_value.train.next_batch.call_args_list):
+            self.assertEqual((train_signals[i].to_dict()), arg[1])
+        mock_dataset.return_value.test.next_batch.assert_called_once_with(
+            batch_size=test_signals[0].batch_size,
+            shuffle=False)
