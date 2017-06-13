@@ -9,7 +9,7 @@ class TestNeuralNetworkBlock(NIOBlockTestCase):
 
     @patch('tensorflow.Session')
     def test_process_signals(self, mock_sess):
-        """numbers get computered like a motherfucker"""
+        """Signals processed by 'train' input execute one training iteration"""
         mock_sess.return_value.run.return_value = [MagicMock()] * 3
         input_signal = {'batch': (MagicMock(), MagicMock())}
         blk = NeuralNetwork()
