@@ -41,6 +41,7 @@ class MNISTImageLoader(Block):
     def process_signals(self, signals, input_id=None):
         # todo: notify a list of new signals instead of new list for each 
         # signal
+        # todo: signal attr for epoch count
         for signal in signals:
             kwargs = {'batch_size': self.batch_size(signal),
                       'shuffle': self.shuffle(signal)}
