@@ -29,7 +29,7 @@ class MNISTImageLoader(Block):
 
     version = VersionProperty('0.1.0')
     batch_size = Property(title='Images per Batch', default=100)
-    shuffle = BoolProperty(title='Shuffle Images', default=True, visible=False)
+    shuffle = BoolProperty(title='Shuffle Batch', default=True, visible=False)
     # todo: validation_size prop
 
     def start(self):
