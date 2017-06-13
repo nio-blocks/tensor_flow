@@ -18,7 +18,7 @@ class TestMNISTImageLoader(NIOBlockTestCase):
         blk.process_signals([Signal({'foo': 10})], input_id='train')
         blk.process_signals([Signal({'foo': 1})], input_id='test')
         blk.stop()
-        # todo: assert mock_dataset arga
+        # todo: assert mock_dataset args
         print(mock_dataset.call_args_list)
         self.assert_num_signals_notified(2)
         self.assertDictEqual({'batch': ANY},
