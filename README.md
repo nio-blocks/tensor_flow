@@ -7,21 +7,45 @@ Dependencies
 * [tensorflow](https://github.com/tensorflow/tensorflow)
 * [numpy](https://github.com/numpy/numpy)
 
-MNISTImageLoader
+NeuralNetwork
 ===========
-Generate 4-Dimensional numpy arrays from MNIST handwriting dataset using data 
-and examples included with TensorFlow 1.1.0
-
-The data contains 60,000 images with labels for training, and another
-10,000 for testing. This block loads the next `batch_size` images and labels
-from either test or train data and notifies a signal containing the resulting
-arrays.
-
-Additional information on this dataset: http://yann.lecun.com/exdb/mnist/
+Hard-coded 784-10 softmax network, executes one training step per input signal.
 
 Properties
 --------------
-* `batch_size`: How many images and labels (array depth) to load at once.
+None
+
+Commands
+----------------
+None
+
+Input
+-------
+* `train`: `{'batch': (ndarray(<images>), ndarray(<labels>))}`
+* `predict`: Unused
+
+Output
+---------
+`{'loss': <float>, 'accuracy': <float>}`
+
+
+MNISTImageLoader
+===========
+Creates 4-Dimensional numpy arrays from MNIST handwriting dataset using
+data and examples included with TensorFlow 1.1.0
+
+Each signal processed by `train` or `test` inputs loads the next 
+`batch_size` images from the corresponding dataset. Output is ready to use by 
+NeuralNetwork block.
+
+The data contains 60,000 images with labels for training, and another
+10,000 for testing. Additional information on this dataset: 
+http://yann.lecun.com/exdb/mnist/
+
+Properties:
+--------------
+* batch_size (int): How many images and labels to load per signal
+* shuffle: If True the contents of each batch will be in random order
 
 Commands
 ----------------
@@ -34,7 +58,4 @@ Input
 
 Output
 ---------
-`{'batch': (images * batch_size, labels)}`
-
-This data type is numpy.ndarray (float32) and is ready to use in TensorFlow 
-blocks.
+`{'batch': (ndarray(<images>), ndarray(<labels>))}`

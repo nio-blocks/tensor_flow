@@ -1,16 +1,18 @@
+from enum import Enum
 from nio.block.base import Block
 from nio.block.terminals import input
 from nio.properties import *
-from enum import Enum
+from nio.signal.base import Signal
 import tensorflow as tf
 
 
+# not used just yet, hardocoding mnist project values for now...
 # class ActivationFunctions(Enum):
     # softmax = 'softmax'
 
 # class Layers(PropertyHolder):
 
-    # count = IntProperty(default=1, title='Number of Neurons')
+    # count = IntProperty(title='Number of Neurons', default=10)
     # activation = SelectProperty(ActivationFunctions,
                                 # title='Activation Function',
                                 # default=ActivationFunctions.softmax)
@@ -20,32 +22,56 @@ import tensorflow as tf
 class NeuralNetwork(Block):
 
     version = VersionProperty('0.1.0')
+    inputs = Property(title='Input Tensor Dimensions',
+                      default='{{ [None, 28, 28, 1] }}')
     # layers = ListProperty(Layers, title='Network Layers', default=[])
 
-    # set random seed for repeatable computations
-    tf.set_random_seed(0)
-    # input images [minibatch size, height, width, color channels]
-    X = tf.placeholder(tf.float32, [None, 28, 28, 1])
-    # desired output
-    Y_ = tf.placeholder(tf.float32, [None, 10])
-    # weights, 784 inputs to 10 neurons
-    W = tf.Variable(tf.zeros([784, 10]))
-    # biases, one per neuron
-    b = tf.Variable(tf.zeros([10]))
-    # flatten images
-    XX = tf.reshape(X, [-1, 784])
+    def __init__(self):
+        self.X = None
+        self.Y_ = None
+        super().__init__()
 
     def start(self):
+        # todo: verify order of heigh/width, for some reason i'm pretty sure 
+        # it's height first
+        height, width = self.inputs()[1:-1]
+        # set random seed for repeatable computations
+        tf.set_random_seed(0)
+        # input images [minibatch size, height, width, color channels]
+        self.X = tf.placeholder(tf.float32, self.inputs())
+        # desired output
+        self.Y_ = tf.placeholder(tf.float32, [None, 10])
+        # weights, 784 inputs to 10 neurons
+        W = tf.Variable(tf.zeros([width * height, 10]))
+        # biases, one per neuron
+        b = tf.Variable(tf.zeros([10]))
+        # flatten images
+        XX = tf.reshape(self.X, [-1, width * height])
         # build the model, Y = computed output
-        Y = tf.nn.softmax(tf.matmul(self.XX, self.W) + self.b)
-        # define loss function
-        cross_entropy = -tf.reduce_mean(self.Y_ * tf.log(Y)) * 1000.0
+        Y = tf.nn.softmax(tf.matmul(XX, W) + b)
+        # define loss function, cross-entropy
+        self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y)) * 1000.0
+        # define training step
+        self.train_step = tf.train.GradientDescentOptimizer(0.005).minimize(self.loss_function)
+        # define accuracy functions
+        self.correct_prediction = tf.equal(tf.argmax(Y, 1), tf.argmax(self.Y_, 1))
+        self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
         # initialize model
-        sess = tf.Session()
-        sess.run(tf.global_variables_initializer())
+        self.sess = tf.Session()
+        self.sess.run(tf.global_variables_initializer())
         super().start()
 
     def process_signals(self, signals, input_id=None):
         for signal in signals:
-            pass
-        self.notify_signals(signals)
+            if input_id == 'train':
+                acc, loss = self._train(signal)[1:]
+                self.notify_signals([Signal({'accuracy': acc, 'loss': loss})])
+
+    def stop(self):
+        # todo: use context manager and remove this
+        self.sess.close()
+        super().stop()
+
+    def _train(self, signal):
+        batch_X, batch_Y = signal.batch
+        return self.sess.run([self.train_step, self.accuracy, self.loss_function], feed_dict={self.X: batch_X, self.Y_: batch_Y})

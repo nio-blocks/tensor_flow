@@ -1,25 +1,39 @@
+from unittest.mock import patch, MagicMock, ANY
 from nio.block.terminals import DEFAULT_TERMINAL
 from nio.signal.base import Signal
 from nio.testing.block_test_case import NIOBlockTestCase
 from ..mnist_image_block import MNISTImageLoader
-from unittest.mock import patch, MagicMock, ANY
 
 
 class TestMNISTImageLoader(NIOBlockTestCase):
 
+    def signals_notified(self, block, signals, output_id):
+        """Override so that last_notified is list of signal lists"""
+        self.last_notified[output_id].append(signals)
+
     @patch('tensorflow.examples.tutorials.mnist.input_data.read_data_sets')
-    def test_process_signals(self, mock_read):
-        """For each input signal call next_batch(batch_size) on the 
-        corresponding attribute of returned DataSet object
-        """
+    def test_process_signals(self, mock_dataset):
+        """For each input signal call next_batch(batch_size)"""
+        train_signals = [Signal({'batch_size': 10, 'shuffle': True})] * 2
+        test_signals = [Signal({'batch_size': 1, 'shuffle': False})]
         blk = MNISTImageLoader()
-        self.configure_block(blk, {'batch_size': '{{ $foo }}' })
+        self.configure_block(blk, {'batch_size': '{{ $batch_size }}',
+                                   'shuffle': '{{ $shuffle }}'})
         blk.start()
-        blk.process_signals([Signal({'foo': 10})], input_id='train')
-        blk.process_signals([Signal({'foo': 1})], input_id='test')
+        blk.process_signals(train_signals, input_id='train')
+        blk.process_signals(test_signals, input_id='test')
         blk.stop()
-        self.assert_num_signals_notified(2)
-        self.assertDictEqual({'batch': ANY},
-                             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
-        mock_read.return_value.train.next_batch.assert_called_once_with(10)
-        mock_read.return_value.test.next_batch.assert_called_once_with(1)
+        mock_dataset.assert_called_once_with('data',
+                                             one_hot=True,
+                                             reshape=False,
+                                             validation_size=0)
+        self.assert_num_signals_notified(len(train_signals + test_signals))
+        self.assertDictEqual(
+            {'batch': ANY},
+            self.last_notified[DEFAULT_TERMINAL][-1][-1].to_dict())
+        for i, arg in enumerate(
+                mock_dataset.return_value.train.next_batch.call_args_list):
+            self.assertEqual((train_signals[i].to_dict()), arg[1])
+        mock_dataset.return_value.test.next_batch.assert_called_once_with(
+            batch_size=test_signals[0].batch_size,
+            shuffle=False)
