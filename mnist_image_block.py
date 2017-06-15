@@ -9,22 +9,13 @@ from tensorflow.examples.tutorials.mnist import input_data as mnist_data
 @input('train')
 class MNISTImageLoader(Block):
 
-    """Creates 4-Dimensional numpy arrays from MNIST handwriting dataset using
-    data and code examples included with TensorFlow 1.1.0. Image data is 
-    stored in `data/` and will be downloaded if it does not exist.
+    """Generates pixel data and labels from MNIST handwriting dataset. 
+    If not already present in `data/` the source data will be downloaded 
+    automatically. The output signal is ready to use by a NeuralNetwork 
+    block.
 
-    Each signal processed by `train` or `test` input loads the next 
-    `batch_size` images from the corresponding dataset. The output signal is 
-    ready to be used by a NeuralNetwork block.
-
-    The data contains 60,000 images with labels for training, and another
-    10,000 for testing. Additional information on this dataset: 
-    http://yann.lecun.com/exdb/mnist/
-
-    Properties:
-        `batch_size` (int): How many images and labels to load per signal
-        `shuffle`: If True the contents of each batch will be in random order
-
+    Each signal processed loads the next `batch_size` images from the 
+    dataset corresponding to `input_id`.
     """
 
     version = VersionProperty('0.1.0')
