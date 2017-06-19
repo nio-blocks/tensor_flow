@@ -22,25 +22,19 @@ class MNISTImageLoader(Block):
     batch_size = Property(title='Images per Batch', default=100)
     shuffle = BoolProperty(title='Shuffle Batch', default=True, visible=False)
     # todo: validation_size prop
-    i = 0
 
     def start(self):
+        super().start()
         self.mnist = mnist_data.read_data_sets('data',
                                                one_hot=True,
                                                reshape=False,
                                                validation_size=0)
-        super().start()
 
     def process_signals(self, signals, input_id=None):
         output_signals = []
         for signal in signals:
             kwargs = {'batch_size': self.batch_size(signal),
                       'shuffle': self.shuffle(signal)}
-            if input_id == 'train':
-                shape = self.mnist.train.images.shape[0]
-                epoch = self.i * kwargs['batch_size'] // shape
-                self.logger.debug('Epoch {}'.format(epoch))
-                self.i += 1
             output_signals.append(Signal(
                 {'batch': getattr(self.mnist, input_id).next_batch(**kwargs)}))
         self.notify_signals(output_signals)
