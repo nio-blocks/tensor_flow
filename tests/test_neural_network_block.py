@@ -15,9 +15,13 @@ class TestNeuralNetworkBlock(NIOBlockTestCase):
         blk = NeuralNetwork()
         self.configure_block(blk, {})
         blk.start()
+        self.assertEqual(mock_sess.call_count, 1)
+        self.assertEqual(mock_sess.return_value.run.call_count, 1)
         blk.process_signals([Signal(input_signal)], input_id='train')
+        self.assertEqual(mock_sess.return_value.run.call_count, 2)
         blk.stop()
         self.assert_num_signals_notified(1)
         self.assertDictEqual(
             {'loss': ANY, 'accuracy': ANY},
             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
+        self.assertEqual(mock_sess.return_value.close.call_count, 1)
