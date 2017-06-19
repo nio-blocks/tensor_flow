@@ -27,11 +27,12 @@ class NeuralNetwork(Block):
     # layers = ListProperty(Layers, title='Network Layers', default=[])
 
     def __init__(self):
+        super().__init__()
         self.X = None
         self.Y_ = None
-        super().__init__()
 
     def start(self):
+        super().start()
         # todo: verify order of heigh/width, for some reason i'm pretty sure 
         # it's height first
         height, width = self.inputs()[1:-1]
@@ -59,7 +60,6 @@ class NeuralNetwork(Block):
         # initialize model
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())
-        super().start()
 
     def process_signals(self, signals, input_id=None):
         for signal in signals:
@@ -68,9 +68,9 @@ class NeuralNetwork(Block):
                 self.notify_signals([Signal({'accuracy': acc, 'loss': loss})])
 
     def stop(self):
+        super().stop()
         # todo: use context manager and remove this
         self.sess.close()
-        super().stop()
 
     def _train(self, signal):
         batch_X, batch_Y = signal.batch
