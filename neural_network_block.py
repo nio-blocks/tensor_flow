@@ -53,10 +53,13 @@ class NeuralNetwork(Block):
         # define loss function, cross-entropy
         self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y)) * 1000.0
         # define training step
-        self.train_step = tf.train.GradientDescentOptimizer(0.005).minimize(self.loss_function)
+        self.train_step = tf.train.GradientDescentOptimizer(0.005).minimize(
+            self.loss_function)
         # define accuracy functions
-        self.correct_prediction = tf.equal(tf.argmax(Y, 1), tf.argmax(self.Y_, 1))
-        self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
+        self.correct_prediction = tf.equal(tf.argmax(Y, 1),
+                                           tf.argmax(self.Y_, 1))
+        self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction,
+                                       tf.float32))
         # initialize model
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())
@@ -74,4 +77,6 @@ class NeuralNetwork(Block):
 
     def _train(self, signal):
         batch_X, batch_Y = signal.batch
-        return self.sess.run([self.train_step, self.accuracy, self.loss_function], feed_dict={self.X: batch_X, self.Y_: batch_Y})
+        return self.sess.run(
+            [self.train_step, self.accuracy, self.loss_function],
+            feed_dict={self.X: batch_X, self.Y_: batch_Y})
