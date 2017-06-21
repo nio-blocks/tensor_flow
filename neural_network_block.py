@@ -22,8 +22,9 @@ import tensorflow as tf
 class NeuralNetwork(Block):
 
     version = VersionProperty('0.1.0')
-    inputs = Property(title='Input Tensor Dimensions',
-                      default='{{ [None, 28, 28, 1] }}')
+    input_dims = [None, 28, 28, 1]
+    # inputs = Property(title='Input Tensor Dimensions',
+                      # default='{{ [None, 28, 28, 1] }}')
     # layers = ListProperty(Layers, title='Network Layers', default=[])
 
     def __init__(self):
@@ -35,19 +36,20 @@ class NeuralNetwork(Block):
         super().start()
         # todo: verify order of heigh/width, for some reason i'm pretty sure 
         # it's height first
-        height, width = self.inputs()[1:-1]
+        height, width = self.input_dims[1:-1]
+        pixels = width * height
         # set random seed for repeatable computations
         tf.set_random_seed(0)
         # input images [minibatch size, height, width, color channels]
-        self.X = tf.placeholder(tf.float32, self.inputs())
+        self.X = tf.placeholder(tf.float32, self.input_dims)
         # desired output
         self.Y_ = tf.placeholder(tf.float32, [None, 10])
         # weights, 784 inputs to 10 neurons
-        W = tf.Variable(tf.zeros([width * height, 10]))
+        W = tf.Variable(tf.zeros([pixels, 10]))
         # biases, one per neuron
         b = tf.Variable(tf.zeros([10]))
         # flatten images
-        XX = tf.reshape(self.X, [-1, width * height])
+        XX = tf.reshape(self.X, [-1, pixels])
         # build the model, Y = computed output
         Y = tf.nn.softmax(tf.matmul(XX, W) + b)
         # define loss function, cross-entropy
