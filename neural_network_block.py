@@ -22,26 +22,24 @@ import tensorflow as tf
 class NeuralNetwork(Block):
 
     version = VersionProperty('0.1.0')
-    input_dims = [None, 28, 28, 1]
-    # inputs = Property(title='Input Tensor Dimensions',
-                      # default='{{ [None, 28, 28, 1] }}')
+    input_dims = Property(title='Input Tensor Dimensions',
+                      default='{{ [None, 28, 28, 1] }}')
+    learning_rate = FloatProperty(title='Learning Rate', default=0.005)
     # layers = ListProperty(Layers, title='Network Layers', default=[])
 
     def __init__(self):
-        super().__init__()
         self.X = None
         self.Y_ = None
+        super().__init__()
 
     def start(self):
-        super().start()
         # todo: verify order of heigh/width, for some reason i'm pretty sure 
         # it's height first
-        height, width = self.input_dims[1:-1]
+        height, width = self.input_dims()[1:-1]
         pixels = width * height
-        # set random seed for repeatable computations
         tf.set_random_seed(0)
         # input images [minibatch size, height, width, color channels]
-        self.X = tf.placeholder(tf.float32, self.input_dims)
+        self.X = tf.placeholder(tf.float32, self.input_dims())
         # desired output
         self.Y_ = tf.placeholder(tf.float32, [None, 10])
         # weights, 784 inputs to 10 neurons
@@ -55,8 +53,8 @@ class NeuralNetwork(Block):
         # define loss function, cross-entropy
         self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y)) * 1000.0
         # define training step
-        self.train_step = tf.train.GradientDescentOptimizer(0.005).minimize(
-            self.loss_function)
+        self.train_step = tf.train.GradientDescentOptimizer(
+            self.learning_rate()).minimize(self.loss_function)
         # define accuracy functions
         self.correct_prediction = tf.equal(tf.argmax(Y, 1),
                                            tf.argmax(self.Y_, 1))
@@ -65,6 +63,7 @@ class NeuralNetwork(Block):
         # initialize model
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())
+        super().start()
 
     def process_signals(self, signals, input_id=None):
         for signal in signals:
@@ -73,9 +72,9 @@ class NeuralNetwork(Block):
                 self.notify_signals([Signal({'accuracy': acc, 'loss': loss})])
 
     def stop(self):
-        super().stop()
         # todo: use context manager and remove this
         self.sess.close()
+        super().stop()
 
     def _train(self, signal):
         batch_X, batch_Y = signal.batch
