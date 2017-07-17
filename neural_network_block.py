@@ -18,6 +18,7 @@ import tensorflow as tf
                                 # default=ActivationFunctions.softmax)
 
 @input('predict')
+@input('test')
 @input('train')
 class NeuralNetwork(Block):
 
@@ -69,7 +70,12 @@ class NeuralNetwork(Block):
         for signal in signals:
             if input_id == 'train':
                 acc, loss = self._train(signal)[1:]
-                self.notify_signals([Signal({'accuracy': acc, 'loss': loss})])
+                self.notify_signals([Signal({'mode': input_id, 'accuracy': acc, 'loss': loss})])
+            elif input_id == 'test':
+                acc, loss = self._test(signal)
+                self.notify_signals([Signal({'mode': input_id, 'accuracy': acc, 'loss': loss})])
+            else:
+                pass
 
     def stop(self):
         # todo: use context manager and remove this
@@ -80,4 +86,10 @@ class NeuralNetwork(Block):
         batch_X, batch_Y = signal.batch
         return self.sess.run(
             [self.train_step, self.accuracy, self.loss_function],
+            feed_dict={self.X: batch_X, self.Y_: batch_Y})
+
+    def _test(self, signal):
+        batch_X, batch_Y = signal.batch
+        return self.sess.run(
+            [self.accuracy, self.loss_function],
             feed_dict={self.X: batch_X, self.Y_: batch_Y})
