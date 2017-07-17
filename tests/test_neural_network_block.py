@@ -44,3 +44,22 @@ class TestNeuralNetworkBlock(NIOBlockTestCase):
         self.assertDictEqual(
             {'loss': ANY, 'accuracy': ANY, 'mode': 'test'},
             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
+
+    @patch('tensorflow.Session')
+    def test_process_predict_signals(self, mock_sess):
+        """Signals processed by 'predict' return classification"""
+        mock_sess.return_value.run.return_value = [MagicMock()] * 2
+        input_signal = {'batch': (MagicMock(), MagicMock())}
+        blk = NeuralNetwork()
+        self.configure_block(blk, {})
+        blk.start()
+        blk.process_signals([Signal(input_signal)], input_id='predict')
+        blk.stop()
+        self.assertEqual(mock_sess.call_count, 1)
+        # sess.run() is called in start() and process_signals()
+        self.assertEqual(mock_sess.return_value.run.call_count, 2)
+        self.assertEqual(mock_sess.return_value.close.call_count, 1)
+        self.assert_num_signals_notified(1)
+        self.assertDictEqual(
+            {'prediction': ANY, 'accuracy': ANY, 'mode': 'predict'},
+            self.last_notified[DEFAULT_TERMINAL][0].to_dict())

@@ -61,6 +61,7 @@ class NeuralNetwork(Block):
                                            tf.argmax(self.Y_, 1))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction,
                                        tf.float32))
+        self.prediction = (tf.argmax(Y, 1), Y)
         # initialize model
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())
@@ -70,12 +71,21 @@ class NeuralNetwork(Block):
         for signal in signals:
             if input_id == 'train':
                 acc, loss = self._train(signal)[1:]
-                self.notify_signals([Signal({'mode': input_id, 'accuracy': acc, 'loss': loss})])
+                self.notify_signals([Signal({'mode': input_id,
+                                             'accuracy': acc, 
+                                             'loss': loss})])
             elif input_id == 'test':
                 acc, loss = self._test(signal)
-                self.notify_signals([Signal({'mode': input_id, 'accuracy': acc, 'loss': loss})])
+                self.notify_signals([Signal({'mode': input_id,
+                                             'accuracy': acc,
+                                             'loss': loss})])
             else:
-                pass
+            # todo: no need for accuracy in predictions, confidence and/or 
+            # other mettrics should be calculated outside this block
+                predict = self._predict(signal)
+                self.notify_signals([Signal({'mode': input_id,
+                                             'prediction': predict,
+                                             'accuracy': 1})])
 
     def stop(self):
         # todo: use context manager and remove this
@@ -93,3 +103,7 @@ class NeuralNetwork(Block):
         return self.sess.run(
             [self.accuracy, self.loss_function],
             feed_dict={self.X: batch_X, self.Y_: batch_Y})
+
+    def _predict(self, signal):
+        batch_X = signal.batch[0]
+        return self.sess.run([self.prediction], feed_dict={self.X: batch_X})
