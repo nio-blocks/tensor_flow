@@ -35,6 +35,7 @@ class MNISTImageLoader(Block):
         for signal in signals:
             kwargs = {'batch_size': self.batch_size(signal),
                       'shuffle': self.shuffle(signal)}
+            batch = getattr(self.mnist, input_id).next_batch(**kwargs)
             output_signals.append(Signal(
-                {'batch': getattr(self.mnist, input_id).next_batch(**kwargs)}))
+                {'images': batch[0], 'labels': batch[1]}))
         self.notify_signals(output_signals)
