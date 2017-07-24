@@ -82,8 +82,6 @@ class NeuralNetwork(Block):
                                              'accuracy': acc,
                                              'loss': loss})])
             else:
-            # todo: no need for accuracy in predictions, confidence and/or 
-            # other mettrics should be calculated outside this block
                 predict = self._predict(signal)
                 self.notify_signals([Signal({'input_id': input_id,
                                              'prediction': predict})])
