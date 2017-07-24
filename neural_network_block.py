@@ -86,8 +86,7 @@ class NeuralNetwork(Block):
             # other mettrics should be calculated outside this block
                 predict = self._predict(signal)
                 self.notify_signals([Signal({'input_id': input_id,
-                                             'prediction': predict,
-                                             'accuracy': 1})])
+                                             'prediction': predict})])
 
     def stop(self):
         # todo: use context manager and remove this

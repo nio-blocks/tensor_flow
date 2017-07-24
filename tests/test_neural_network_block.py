@@ -61,5 +61,5 @@ class TestNeuralNetworkBlock(NIOBlockTestCase):
         self.assertEqual(mock_sess.return_value.close.call_count, 1)
         self.assert_num_signals_notified(1)
         self.assertDictEqual(
-            {'prediction': ANY, 'accuracy': ANY, 'input_id': 'predict'},
+            {'prediction': ANY,'input_id': 'predict'},
             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
