@@ -71,19 +71,19 @@ class NeuralNetwork(Block):
         for signal in signals:
             if input_id == 'train':
                 acc, loss = self._train(signal)[1:]
-                self.notify_signals([Signal({'mode': input_id,
+                self.notify_signals([Signal({'input_id': input_id,
                                              'accuracy': acc, 
                                              'loss': loss})])
             elif input_id == 'test':
                 acc, loss = self._test(signal)
-                self.notify_signals([Signal({'mode': input_id,
+                self.notify_signals([Signal({'input_id': input_id,
                                              'accuracy': acc,
                                              'loss': loss})])
             else:
             # todo: no need for accuracy in predictions, confidence and/or 
             # other mettrics should be calculated outside this block
                 predict = self._predict(signal)
-                self.notify_signals([Signal({'mode': input_id,
+                self.notify_signals([Signal({'input_id': input_id,
                                              'prediction': predict,
                                              'accuracy': 1})])
 

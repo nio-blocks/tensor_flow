@@ -23,7 +23,7 @@ class TestNeuralNetworkBlock(NIOBlockTestCase):
         self.assertEqual(mock_sess.return_value.close.call_count, 1)
         self.assert_num_signals_notified(1)
         self.assertDictEqual(
-            {'loss': ANY, 'accuracy': ANY, 'mode': 'train'},
+            {'loss': ANY, 'accuracy': ANY, 'input_id': 'train'},
             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
 
     @patch('tensorflow.Session')
@@ -42,7 +42,7 @@ class TestNeuralNetworkBlock(NIOBlockTestCase):
         self.assertEqual(mock_sess.return_value.close.call_count, 1)
         self.assert_num_signals_notified(1)
         self.assertDictEqual(
-            {'loss': ANY, 'accuracy': ANY, 'mode': 'test'},
+            {'loss': ANY, 'accuracy': ANY, 'input_id': 'test'},
             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
 
     @patch('tensorflow.Session')
@@ -61,5 +61,5 @@ class TestNeuralNetworkBlock(NIOBlockTestCase):
         self.assertEqual(mock_sess.return_value.close.call_count, 1)
         self.assert_num_signals_notified(1)
         self.assertDictEqual(
-            {'prediction': ANY, 'accuracy': ANY, 'mode': 'predict'},
+            {'prediction': ANY, 'accuracy': ANY, 'input_id': 'predict'},
             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
