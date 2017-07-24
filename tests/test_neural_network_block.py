@@ -11,7 +11,7 @@ class TestNeuralNetworkBlock(NIOBlockTestCase):
     def test_process_train_signals(self, mock_sess):
         """Signals processed by 'train' input execute one training iteration"""
         mock_sess.return_value.run.return_value = [MagicMock()] * 3
-        input_signal = {'batch': (MagicMock(), MagicMock())}
+        input_signal = {'images': MagicMock(), 'labels': MagicMock()}
         blk = NeuralNetwork()
         self.configure_block(blk, {})
         blk.start()
@@ -30,7 +30,7 @@ class TestNeuralNetworkBlock(NIOBlockTestCase):
     def test_process_test_signals(self, mock_sess):
         """Signals processed by 'test' return accuracy and loss"""
         mock_sess.return_value.run.return_value = [MagicMock()] * 2
-        input_signal = {'batch': (MagicMock(), MagicMock())}
+        input_signal = {'images': MagicMock(), 'labels': MagicMock()}
         blk = NeuralNetwork()
         self.configure_block(blk, {})
         blk.start()
@@ -49,7 +49,7 @@ class TestNeuralNetworkBlock(NIOBlockTestCase):
     def test_process_predict_signals(self, mock_sess):
         """Signals processed by 'predict' return classification"""
         mock_sess.return_value.run.return_value = [MagicMock()] * 2
-        input_signal = {'batch': (MagicMock(), MagicMock())}
+        input_signal = {'images': MagicMock(), 'labels': MagicMock()}
         blk = NeuralNetwork()
         self.configure_block(blk, {})
         blk.start()

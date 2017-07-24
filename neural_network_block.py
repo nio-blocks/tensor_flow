@@ -64,7 +64,7 @@ class NeuralNetwork(Block):
                                            tf.argmax(self.Y_, 1))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction,
                                        tf.float32))
-        self.prediction = (tf.argmax(Y, 1), Y)
+        self.prediction = Y
         # initialize model
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())
@@ -94,17 +94,19 @@ class NeuralNetwork(Block):
         super().stop()
 
     def _train(self, signal):
-        batch_X, batch_Y = signal.batch
+        batch_X = signal.images
+        batch_Y = signal.labels
         return self.sess.run(
             [self.train_step, self.accuracy, self.loss_function],
             feed_dict={self.X: batch_X, self.Y_: batch_Y})
 
     def _test(self, signal):
-        batch_X, batch_Y = signal.batch
+        batch_X = signal.images
+        batch_Y = signal.labels
         return self.sess.run(
             [self.accuracy, self.loss_function],
             feed_dict={self.X: batch_X, self.Y_: batch_Y})
 
     def _predict(self, signal):
-        batch_X = signal.batch[0]
-        return self.sess.run([self.prediction], feed_dict={self.X: batch_X})
+        batch_X = signal.images
+        return self.sess.run(self.prediction, feed_dict={self.X: batch_X})
