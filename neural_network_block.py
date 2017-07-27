@@ -3,7 +3,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='2' # supress TF build warnings
 from enum import Enum
 from nio.block.base import Block
 from nio.block.terminals import input
-from nio.properties import *
+from nio.properties import VersionProperty, Property, FloatProperty
 from nio.signal.base import Signal
 import tensorflow as tf
 
@@ -26,7 +26,8 @@ class NeuralNetwork(Block):
 
     version = VersionProperty('0.1.0')
     input_dims = Property(title='Input Tensor Dimensions',
-                      default='{{ [None, 28, 28, 1] }}')
+                          default='{{ [None, 28, 28, 1] }}',
+                          visible=False)
     learning_rate = FloatProperty(title='Learning Rate', default=0.005)
     # layers = ListProperty(Layers, title='Network Layers', default=[])
 
@@ -64,7 +65,7 @@ class NeuralNetwork(Block):
                                            tf.argmax(self.Y_, 1))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction,
                                        tf.float32))
-        self.prediction = Y
+        self.prediction = (tf.argmax(Y, 1), Y)
         # initialize model
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())
