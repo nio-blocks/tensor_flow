@@ -3,6 +3,7 @@ from nio.block.terminals import DEFAULT_TERMINAL
 from nio.signal.base import Signal
 from nio.testing.block_test_case import NIOBlockTestCase
 from ..neural_network_block import NeuralNetwork
+# https://www.tensorflow.org/api_guides/python/test
 
 
 class TestNeuralNetworkBlock(NIOBlockTestCase):
