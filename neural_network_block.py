@@ -3,21 +3,24 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='2' # supress TF build warnings
 from enum import Enum
 from nio.block.base import Block
 from nio.block.terminals import input
-from nio.properties import VersionProperty, Property, FloatProperty
+from nio.properties import VersionProperty, Property, FloatProperty, \
+                           PropertyHolder, IntProperty, SelectProperty, \
+                           ListProperty, BoolProperty
 from nio.signal.base import Signal
 import tensorflow as tf
 
 
 # not used just yet, hardocoding mnist project values for now...
-# class ActivationFunctions(Enum):
-    # softmax = 'softmax'
+class ActivationFunctions(Enum):
+    softmax = 'softmax'
 
-# class Layers(PropertyHolder):
+class Layers(PropertyHolder):
 
-    # count = IntProperty(title='Number of Neurons', default=10)
-    # activation = SelectProperty(ActivationFunctions,
-                                # title='Activation Function',
-                                # default=ActivationFunctions.softmax)
+    count = IntProperty(title='Number of Neurons', default=10)
+    activation = SelectProperty(ActivationFunctions,
+                                title='Activation Function',
+                                default=ActivationFunctions.softmax)
+    bias = BoolProperty(title='Add Bias Unit', default=True)
 
 @input('predict')
 @input('test')
@@ -29,7 +32,7 @@ class NeuralNetwork(Block):
                           default='{{ [None, 28, 28, 1] }}',
                           visible=False)
     learning_rate = FloatProperty(title='Learning Rate', default=0.005)
-    # layers = ListProperty(Layers, title='Network Layers', default=[])
+    layers = ListProperty(Layers, title='Network Layers', default=[])
 
     def __init__(self):
         super().__init__()
@@ -38,15 +41,24 @@ class NeuralNetwork(Block):
 
     def configure(self, context):
         super().configure(context)
-        # todo: verify order of heigh/width, for some reason i'm pretty sure 
-        # it's height first
-        height, width = self.input_dims()[1:-1]
+        width, height= self.input_dims()[1:-1]
         pixels = width * height
         tf.set_random_seed(0)
-        # input images [minibatch size, height, width, color channels]
+        # input images [minibatch size, width, height, color channels]
         self.X = tf.placeholder(tf.float32, self.input_dims())
         # desired output
         self.Y_ = tf.placeholder(tf.float32, [None, 10])
+        #################
+        prev_layer = tf.reshape(self.X, [-1, pixels])
+        for i, layer in enumerate(self.layers()):
+            name = 'layer{}'.format(i)
+            globals()[name] = getattr(tf.nn, layer.activation)(inputs=prev_layer,
+                                                               units=layer['count'],
+                                                               activation=layer['activation'],
+                                                               use_bias=layer['bias'],
+                                                               name=name)
+            prev_layer = layer
+        #################
         # weights, 784 inputs to 10 neurons
         W = tf.Variable(tf.zeros([pixels, 10]))
         # biases, one per neuron
