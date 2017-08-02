@@ -10,9 +10,18 @@ from nio.signal.base import Signal
 import tensorflow as tf
 
 
-# not used just yet, hardocoding mnist project values for now...
 class ActivationFunctions(Enum):
+
     softmax = 'softmax'
+    sigmoid = 'sigmoid'
+    tanh = 'tanh'
+    relu = 'relu'
+    # dropout = 'drouput'
+
+class InitialValues(Enum):
+
+    random = 'truncated_normal'
+    zeros = 'zeros'
 
 class Layers(PropertyHolder):
 
@@ -20,6 +29,9 @@ class Layers(PropertyHolder):
     activation = SelectProperty(ActivationFunctions,
                                 title='Activation Function',
                                 default=ActivationFunctions.softmax)
+    initial = SelectProperty(InitialValues,
+                             title='Initial Weight Values',
+                             default=InitialValues.random)
     bias = BoolProperty(title='Add Bias Unit', default=True)
 
 @input('predict')
@@ -42,33 +54,34 @@ class NeuralNetwork(Block):
     def configure(self, context):
         super().configure(context)
         width, height= self.input_dims()[1:-1]
-        pixels = width * height
         tf.set_random_seed(0)
         # input images [minibatch size, width, height, color channels]
         self.X = tf.placeholder(tf.float32, self.input_dims())
         # desired output
-        self.Y_ = tf.placeholder(tf.float32, [None, 10])
+        self.Y_ = tf.placeholder(tf.float32, [None, self.layers()[-1].count()])
         #################
-        prev_layer = tf.reshape(self.X, [-1, pixels])
-
+        prev_layer = tf.reshape(self.X, [-1, width * height])
         for i, layer in enumerate(self.layers()):
             name = 'layer{}'.format(i)
-            globals()[name] = getattr(tf.nn, layer.activation.value)(prev_layer, name=name)
-            prev_layer = layer
+            W = tf.Variable(getattr(tf, layer.initial().value)([int(prev_layer.shape[-1]), layer.count()]))
+            b = tf.Variable(getattr(tf, layer.initial().value)([layer.count()]))
+            if layer.bias.value:
+                globals()[name + '_logits'] = tf.matmul(prev_layer, W) + b
+            else:
+                globals()[name + '_logits'] = tf.matmul(prev_layer, W)
+            globals()[name] = getattr(tf.nn, layer.activation().value)(globals()[name + '_logits'])
+            prev_layer = globals()[name]
         #################
-        # weights, 784 inputs to 10 neurons
-        W = tf.Variable(tf.zeros([pixels, 10]))
-        # biases, one per neuron
-        b = tf.Variable(tf.zeros([10]))
-        # flatten images
-        XX = tf.reshape(self.X, [-1, pixels])
-        # build the model, Y = computed output
-        Y = tf.nn.softmax(tf.matmul(XX, W) + b)
+        Y = globals()['layer{}'.format(len(self.layers()) - 1)]
+        Y_logits = globals()['layer{}_logits'.format(len(self.layers()) - 1)]
         # define loss function, cross-entropy
-        self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y)) * 1000.0
+        # self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y)) * 1000.0
+        cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=Y_logits, labels=self.Y_)
+        self.loss_function = tf.reduce_mean(cross_entropy)*100
         # define training step
-        self.train_step = tf.train.GradientDescentOptimizer(
-            self.learning_rate()).minimize(self.loss_function)
+        # self.train_step = tf.train.GradientDescentOptimizer(
+            # self.learning_rate()).minimize(self.loss_function)
+        self.train_step = tf.train.AdamOptimizer(self.learning_rate()).minimize(self.loss_function)
         # define accuracy functions
         self.correct_prediction = tf.equal(tf.argmax(Y, 1),
                                            tf.argmax(self.Y_, 1))
