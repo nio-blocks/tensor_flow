@@ -8,13 +8,15 @@ from ..neural_network_block import NeuralNetwork
 
 class TestNeuralNetworkBlock(NIOBlockTestCase):
 
+    block_config = {'layers': [{}]}
+
     @patch('tensorflow.Session')
     def test_process_train_signals(self, mock_sess):
         """Signals processed by 'train' input execute one training iteration"""
         mock_sess.return_value.run.return_value = [MagicMock()] * 3
         input_signal = {'images': MagicMock(), 'labels': MagicMock()}
         blk = NeuralNetwork()
-        self.configure_block(blk, {})
+        self.configure_block(blk, self.block_config)
         blk.start()
         blk.process_signals([Signal(input_signal)], input_id='train')
         blk.stop()
@@ -33,7 +35,7 @@ class TestNeuralNetworkBlock(NIOBlockTestCase):
         mock_sess.return_value.run.return_value = [MagicMock()] * 2
         input_signal = {'images': MagicMock(), 'labels': MagicMock()}
         blk = NeuralNetwork()
-        self.configure_block(blk, {})
+        self.configure_block(blk, self.block_config)
         blk.start()
         blk.process_signals([Signal(input_signal)], input_id='test')
         blk.stop()
@@ -52,7 +54,7 @@ class TestNeuralNetworkBlock(NIOBlockTestCase):
         mock_sess.return_value.run.return_value = [MagicMock()] * 2
         input_signal = {'images': MagicMock(), 'labels': MagicMock()}
         blk = NeuralNetwork()
-        self.configure_block(blk, {})
+        self.configure_block(blk, self.block_config)
         blk.start()
         blk.process_signals([Signal(input_signal)], input_id='predict')
         blk.stop()
