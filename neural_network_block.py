@@ -50,13 +50,10 @@ class NeuralNetwork(Block):
         self.Y_ = tf.placeholder(tf.float32, [None, 10])
         #################
         prev_layer = tf.reshape(self.X, [-1, pixels])
+
         for i, layer in enumerate(self.layers()):
             name = 'layer{}'.format(i)
-            globals()[name] = getattr(tf.nn, layer.activation)(inputs=prev_layer,
-                                                               units=layer['count'],
-                                                               activation=layer['activation'],
-                                                               use_bias=layer['bias'],
-                                                               name=name)
+            globals()[name] = getattr(tf.nn, layer.activation.value)(prev_layer, name=name)
             prev_layer = layer
         #################
         # weights, 784 inputs to 10 neurons
