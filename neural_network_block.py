@@ -5,10 +5,15 @@ from nio.block.base import Block
 from nio.block.terminals import input
 from nio.properties import VersionProperty, Property, FloatProperty, \
                            PropertyHolder, IntProperty, SelectProperty, \
-                           ListProperty, BoolProperty
+                           ListProperty, BoolProperty, StringProperty
 from nio.signal.base import Signal
 import tensorflow as tf
 
+
+class LossFunctions(Enum):
+
+    cross_entropy = 'cross_entropy'
+    softmax_cross_entropy_with_logits = 'softmax_cross_entropy_with_logits'
 
 class ActivationFunctions(Enum):
 
@@ -45,6 +50,11 @@ class NeuralNetwork(Block):
                           visible=False)
     learning_rate = FloatProperty(title='Learning Rate', default=0.005)
     layers = ListProperty(Layers, title='Network Layers', default=[])
+    loss = SelectProperty(LossFunctions,
+                                   title='Loss Function',
+                                   default=LossFunctions.cross_entropy)
+    optimizer = StringProperty(title='Optimizer',
+                               default='GradientDescentOptimizer')
 
     def __init__(self):
         super().__init__()
@@ -74,14 +84,16 @@ class NeuralNetwork(Block):
         #################
         Y = globals()['layer{}'.format(len(self.layers()) - 1)]
         Y_logits = globals()['layer{}_logits'.format(len(self.layers()) - 1)]
-        # define loss function, cross-entropy
-        # self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y)) * 1000.0
-        cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=Y_logits, labels=self.Y_)
-        self.loss_function = tf.reduce_mean(cross_entropy)*100
+        # define loss functions
+        self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y)) * 1000.0
+        if self.loss().value == 'softmax_cross_entropy_with_logits':
+            cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=Y_logits, labels=self.Y_)
+            self.loss_function = tf.reduce_mean(cross_entropy) * 100.0
         # define training step
         # self.train_step = tf.train.GradientDescentOptimizer(
             # self.learning_rate()).minimize(self.loss_function)
-        self.train_step = tf.train.AdamOptimizer(self.learning_rate()).minimize(self.loss_function)
+        # self.train_step = tf.train.AdamOptimizer(self.learning_rate()).minimize(self.loss_function)
+        self.train_step = getattr(tf.train, self.optimizer())(self.learning_rate()).minimize(self.loss_function)
         # define accuracy functions
         self.correct_prediction = tf.equal(tf.argmax(Y, 1),
                                            tf.argmax(self.Y_, 1))
