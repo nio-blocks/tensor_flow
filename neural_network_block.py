@@ -21,7 +21,7 @@ class ActivationFunctions(Enum):
     sigmoid = 'sigmoid'
     tanh = 'tanh'
     relu = 'relu'
-    # dropout = 'drouput'
+    dropout = 'drouput'
 
 class InitialValues(Enum):
 
@@ -31,7 +31,8 @@ class InitialValues(Enum):
 
 class Layers(PropertyHolder):
 
-    count = IntProperty(title='Number of Neurons', default=10)
+    count = FloatProperty(title='Number of Neurons (alt: Dropout Percent)',
+                          default=10)
     activation = SelectProperty(ActivationFunctions,
                                 title='Activation Function',
                                 default=ActivationFunctions.softmax)
@@ -69,20 +70,24 @@ class NeuralNetwork(Block):
         # input tensors [batch size, width, height, color channels]
         self.X = tf.placeholder(tf.float32, self.input_dims())
         # desired output, labels
-        self.Y_ = tf.placeholder(tf.float32, [None, self.layers()[-1].count()])
+        self.Y_ = tf.placeholder(tf.float32, [None, int(self.layers()[-1].count())])
         prev_layer = tf.reshape(self.X, [-1, width * height])
         for i, layer in enumerate(self.layers()):
             name = 'layer{}'.format(i)
-            W = tf.Variable(getattr(tf, layer.initial_weights().value)([int(prev_layer.shape[-1]), layer.count()]))
-            b = tf.Variable(getattr(tf, layer.initial_weights().value)([layer.count()]))
+            W = tf.Variable(getattr(tf, layer.initial_weights().value)([int(prev_layer.shape[-1]), int(layer.count())]))
+            b = tf.Variable(getattr(tf, layer.initial_weights().value)([int(layer.count())]))
             # logits may be used by loss function so we create a variable for
             # each layer before and after activation
-            # todo: does this only need to be done for last layer?
-            if layer.bias.value:
-                globals()[name + '_logits'] = tf.matmul(prev_layer, W) + b
+            # todo: only for last layer!!!
+            if layer.activation().value != 'dropout':
+                if layer.bias.value:
+                    globals()[name + '_logits'] = tf.matmul(prev_layer, W) + b
+                else:
+                    globals()[name + '_logits'] = tf.matmul(prev_layer, W)
+                globals()[name] = getattr(tf.nn, layer.activation().value)(globals()[name + '_logits'])
             else:
-                globals()[name + '_logits'] = tf.matmul(prev_layer, W)
-            globals()[name] = getattr(tf.nn, layer.activation().value)(globals()[name + '_logits'])
+                name = name + '_d'
+                globals()[name] = tf.nn.dropout(prev_layer, 1 - layer.count())
             prev_layer = globals()[name]
         Y = globals()['layer{}'.format(len(self.layers()) - 1)]
         Y_logits = globals()['layer{}_logits'.format(len(self.layers()) - 1)]
