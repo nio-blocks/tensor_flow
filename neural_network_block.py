@@ -31,7 +31,7 @@ class InitialValues(Enum):
 
 class Layers(PropertyHolder):
 
-    count = FloatProperty(title='Number of Neurons (alt: Dropout Percent)',
+    count = IntProperty(title='Number of Neurons',
                           default=10)
     activation = SelectProperty(ActivationFunctions,
                                 title='Activation Function',
@@ -57,11 +57,14 @@ class NeuralNetwork(Block):
                                    default=LossFunctions.cross_entropy)
     optimizer = StringProperty(title='Optimizer',
                                default='GradientDescentOptimizer')
+    dropout = FloatProperty(title='Dropout Percentage During Training',
+                            default=0)
 
     def __init__(self):
         super().__init__()
         self.X = None
         self.Y_ = None
+        self.prob_keep = None
 
     def configure(self, context):
         super().configure(context)
@@ -69,13 +72,14 @@ class NeuralNetwork(Block):
         tf.set_random_seed(0)
         # input tensors [batch size, width, height, color channels]
         self.X = tf.placeholder(tf.float32, self.input_dims())
-        # desired output, labels
-        self.Y_ = tf.placeholder(tf.float32, [None, int(self.layers()[-1].count())])
+        # desired output (labels)
+        self.Y_ = tf.placeholder(tf.float32, [None, self.layers()[-1].count()])
+        self.prob_keep = tf.placeholder(tf.float32)
         prev_layer = tf.reshape(self.X, [-1, width * height])
         for i, layer in enumerate(self.layers()):
             name = 'layer{}'.format(i)
-            W = tf.Variable(getattr(tf, layer.initial_weights().value)([int(prev_layer.shape[-1]), int(layer.count())]))
-            b = tf.Variable(getattr(tf, layer.initial_weights().value)([int(layer.count())]))
+            W = tf.Variable(getattr(tf, layer.initial_weights().value)([int(prev_layer.shape[-1]), layer.count()]))
+            b = tf.Variable(getattr(tf, layer.initial_weights().value)([layer.count()]))
             # logits may be used by loss function so we create a variable for
             # each layer before and after activation
             # todo: only for last layer!!!
@@ -87,11 +91,10 @@ class NeuralNetwork(Block):
                 globals()[name] = getattr(tf.nn, layer.activation().value)(globals()[name + '_logits'])
             else:
                 name = name + '_d'
-                globals()[name] = tf.nn.dropout(prev_layer, 1 - layer.count())
+                globals()[name] = tf.nn.dropout(prev_layer, self.prob_keep)
             prev_layer = globals()[name]
         Y = globals()['layer{}'.format(len(self.layers()) - 1)]
         Y_logits = globals()['layer{}_logits'.format(len(self.layers()) - 1)]
-        # define loss functions
         if self.loss().value == 'cross_entropy':
             self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y)) # * 1000.0
         if self.loss().value == 'softmax_cross_entropy_with_logits':
@@ -102,7 +105,7 @@ class NeuralNetwork(Block):
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction,
                                        tf.float32))
         self.prediction = (tf.argmax(Y, 1), Y)
-        # initialize model
+
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())
 
@@ -133,15 +136,22 @@ class NeuralNetwork(Block):
         batch_Y = signal.labels
         return self.sess.run(
             [self.train_step, self.accuracy, self.loss_function],
-            feed_dict={self.X: batch_X, self.Y_: batch_Y})
+            feed_dict={self.X: batch_X,
+                       self.Y_: batch_Y,
+                       self.prob_keep: 1 - self.dropout()})
 
     def _test(self, signal):
         batch_X = signal.images
         batch_Y = signal.labels
         return self.sess.run(
             [self.accuracy, self.loss_function],
-            feed_dict={self.X: batch_X, self.Y_: batch_Y})
+            feed_dict={self.X: batch_X,
+                       self.Y_: batch_Y,
+                       self.prob_keep: 1})
 
     def _predict(self, signal):
         batch_X = signal.images
-        return self.sess.run(self.prediction, feed_dict={self.X: batch_X})
+        return self.sess.run(
+            self.prediction,
+            feed_dict={self.X: batch_X,
+                       self.prob_keep: 1})
