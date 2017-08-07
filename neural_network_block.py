@@ -75,6 +75,8 @@ class NeuralNetwork(Block):
             name = 'layer{}'.format(i)
             W = tf.Variable(getattr(tf, layer.initial().value)([int(prev_layer.shape[-1]), layer.count()]))
             b = tf.Variable(getattr(tf, layer.initial().value)([layer.count()]))
+            # logits may be used by loss function so we create a variable for
+            # each layer before and after activation
             if layer.bias.value:
                 globals()[name + '_logits'] = tf.matmul(prev_layer, W) + b
             else:
@@ -85,10 +87,10 @@ class NeuralNetwork(Block):
         Y = globals()['layer{}'.format(len(self.layers()) - 1)]
         Y_logits = globals()['layer{}_logits'.format(len(self.layers()) - 1)]
         # define loss functions
-        self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y)) * 1000.0
+        if self.loss().value == 'cross_entropy'
+        self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y)) # * 1000.0
         if self.loss().value == 'softmax_cross_entropy_with_logits':
-            cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=Y_logits, labels=self.Y_)
-            self.loss_function = tf.reduce_mean(cross_entropy) * 100.0
+            self.loss_function = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=Y_logits, labels=self.Y_)) # * 100
         # define training step
         # self.train_step = tf.train.GradientDescentOptimizer(
             # self.learning_rate()).minimize(self.loss_function)
