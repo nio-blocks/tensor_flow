@@ -27,6 +27,7 @@ class InitialValues(Enum):
 
     random = 'truncated_normal'
     zeros = 'zeros'
+    ones = 'ones'
 
 class Layers(PropertyHolder):
 
@@ -34,9 +35,9 @@ class Layers(PropertyHolder):
     activation = SelectProperty(ActivationFunctions,
                                 title='Activation Function',
                                 default=ActivationFunctions.softmax)
-    initial = SelectProperty(InitialValues,
-                             title='Initial Weight Values',
-                             default=InitialValues.random)
+    initial_weights = SelectProperty(InitialValues,
+                                     title='Initial Weight Values',
+                                     default=InitialValues.random)
     bias = BoolProperty(title='Add Bias Unit', default=True)
 
 @input('predict')
@@ -72,10 +73,11 @@ class NeuralNetwork(Block):
         prev_layer = tf.reshape(self.X, [-1, width * height])
         for i, layer in enumerate(self.layers()):
             name = 'layer{}'.format(i)
-            W = tf.Variable(getattr(tf, layer.initial().value)([int(prev_layer.shape[-1]), layer.count()]))
-            b = tf.Variable(getattr(tf, layer.initial().value)([layer.count()]))
+            W = tf.Variable(getattr(tf, layer.initial_weights().value)([int(prev_layer.shape[-1]), layer.count()]))
+            b = tf.Variable(getattr(tf, layer.initial_weights().value)([layer.count()]))
             # logits may be used by loss function so we create a variable for
             # each layer before and after activation
+            # todo: does this only need to be done for last layer?
             if layer.bias.value:
                 globals()[name + '_logits'] = tf.matmul(prev_layer, W) + b
             else:
@@ -89,10 +91,6 @@ class NeuralNetwork(Block):
             self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y)) # * 1000.0
         if self.loss().value == 'softmax_cross_entropy_with_logits':
             self.loss_function = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=Y_logits, labels=self.Y_)) # * 100
-        # define training step
-        # self.train_step = tf.train.GradientDescentOptimizer(
-            # self.learning_rate()).minimize(self.loss_function)
-        # self.train_step = tf.train.AdamOptimizer(self.learning_rate()).minimize(self.loss_function)
         self.train_step = getattr(tf.train, self.optimizer())(self.learning_rate()).minimize(self.loss_function)
         self.correct_prediction = tf.equal(tf.argmax(Y, 1),
                                            tf.argmax(self.Y_, 1))
