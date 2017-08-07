@@ -65,7 +65,7 @@ class NeuralNetwork(Block):
         super().configure(context)
         width, height= self.input_dims()[1:-1]
         tf.set_random_seed(0)
-        # input images [minibatch size, width, height, color channels]
+        # input tensors [batch size, width, height, color channels]
         self.X = tf.placeholder(tf.float32, self.input_dims())
         # desired output, labels
         self.Y_ = tf.placeholder(tf.float32, [None, self.layers()[-1].count()])
