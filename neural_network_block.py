@@ -5,7 +5,7 @@ from nio.block.base import Block
 from nio.block.terminals import input
 from nio.properties import VersionProperty, Property, FloatProperty, \
                            PropertyHolder, IntProperty, SelectProperty, \
-                           ListProperty, BoolProperty, StringProperty
+                           ListProperty, BoolProperty
 from nio.signal.base import Signal
 
 import tensorflow as tf
@@ -61,7 +61,9 @@ class NeuralNetwork(Block):
     loss = SelectProperty(LossFunctions,
                           title='Loss Function',
                           default=LossFunctions.cross_entropy)
-    optimizer = SelectProperty(Optimizers, title="Optimizer",
+
+    optimizer = SelectProperty(Optimizers,
+                               title="Optimizer",
                                default=Optimizers.gradient_descent)
     dropout = FloatProperty(title='Dropout Percentage During Training',
                             default=0)
@@ -80,6 +82,7 @@ class NeuralNetwork(Block):
 
     def configure(self, context):
         super().configure(context)
+
         width, height = self.input_dims()[1:-1]
         tf.set_random_seed(0)
         # input tensors [batch size, width, height, color channels]
