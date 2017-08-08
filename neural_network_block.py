@@ -1,38 +1,43 @@
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL']='2' # supress TF build warnings
 from enum import Enum
+
 from nio.block.base import Block
 from nio.block.terminals import input
 from nio.properties import VersionProperty, Property, FloatProperty, \
                            PropertyHolder, IntProperty, SelectProperty, \
                            ListProperty, BoolProperty, StringProperty
 from nio.signal.base import Signal
+
 import tensorflow as tf
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' # supress TF build warnings
 
 
 class LossFunctions(Enum):
-
     cross_entropy = 'cross_entropy'
     softmax_cross_entropy_with_logits = 'softmax_cross_entropy_with_logits'
 
-class ActivationFunctions(Enum):
 
+class Optimizers(Enum):
+    gradient_descent = 'GradientDescentOptimizer'
+
+
+class ActivationFunctions(Enum):
     softmax = 'softmax'
     sigmoid = 'sigmoid'
     tanh = 'tanh'
     relu = 'relu'
     dropout = 'drouput'
 
-class InitialValues(Enum):
 
+class InitialValues(Enum):
     random = 'truncated_normal'
     zeros = 'zeros'
     ones = 'ones'
 
-class Layers(PropertyHolder):
 
+class Layers(PropertyHolder):
     count = IntProperty(title='Number of Neurons',
-                          default=10)
+                        default=10)
     activation = SelectProperty(ActivationFunctions,
                                 title='Activation Function',
                                 default=ActivationFunctions.softmax)
@@ -40,6 +45,7 @@ class Layers(PropertyHolder):
                                      title='Initial Weight Values',
                                      default=InitialValues.random)
     bias = BoolProperty(title='Add Bias Unit', default=True)
+
 
 @input('predict')
 @input('test')
@@ -53,10 +59,10 @@ class NeuralNetwork(Block):
     learning_rate = FloatProperty(title='Learning Rate', default=0.005)
     layers = ListProperty(Layers, title='Network Layers', default=[])
     loss = SelectProperty(LossFunctions,
-                                   title='Loss Function',
-                                   default=LossFunctions.cross_entropy)
-    optimizer = StringProperty(title='Optimizer',
-                               default='GradientDescentOptimizer')
+                          title='Loss Function',
+                          default=LossFunctions.cross_entropy)
+    optimizer = SelectProperty(Optimizers, title="Optimizer",
+                               default=Optimizers.gradient_descent)
     dropout = FloatProperty(title='Dropout Percentage During Training',
                             default=0)
 
