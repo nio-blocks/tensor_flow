@@ -71,6 +71,12 @@ class NeuralNetwork(Block):
         self.X = None
         self.Y_ = None
         self.prob_keep = None
+        self.train_step = None
+        self.correct_prediction = None
+        self.accuracy = None
+        self.prediction = None
+        self.sess = None
+        self.loss_function = None
 
     def configure(self, context):
         super().configure(context)
@@ -82,6 +88,7 @@ class NeuralNetwork(Block):
         self.Y_ = tf.placeholder(tf.float32, [None, self.layers()[-1].count()])
         self.prob_keep = tf.placeholder(tf.float32)
         prev_layer = tf.reshape(self.X, [-1, width * height])
+
         for i, layer in enumerate(self.layers()):
             name = 'layer{}'.format(i)
             W = tf.Variable(getattr(tf, layer.initial_weights().value)([int(prev_layer.shape[-1]), layer.count()]))
@@ -99,8 +106,10 @@ class NeuralNetwork(Block):
                 name = name + '_d'
                 globals()[name] = tf.nn.dropout(prev_layer, self.prob_keep)
             prev_layer = globals()[name]
+
         Y = globals()['layer{}'.format(len(self.layers()) - 1)]
         Y_logits = globals()['layer{}_logits'.format(len(self.layers()) - 1)]
+
         if self.loss().value == 'cross_entropy':
             self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y)) # * 1000.0
         if self.loss().value == 'softmax_cross_entropy_with_logits':
