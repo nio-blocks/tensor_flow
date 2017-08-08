@@ -74,7 +74,7 @@ class NeuralNetwork(Block):
 
     def configure(self, context):
         super().configure(context)
-        width, height= self.input_dims()[1:-1]
+        width, height = self.input_dims()[1:-1]
         tf.set_random_seed(0)
         # input tensors [batch size, width, height, color channels]
         self.X = tf.placeholder(tf.float32, self.input_dims())
@@ -105,7 +105,7 @@ class NeuralNetwork(Block):
             self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y)) # * 1000.0
         if self.loss().value == 'softmax_cross_entropy_with_logits':
             self.loss_function = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=Y_logits, labels=self.Y_)) # * 100
-        self.train_step = getattr(tf.train, self.optimizer())(self.learning_rate()).minimize(self.loss_function)
+        self.train_step = getattr(tf.train, self.optimizer().value)(self.learning_rate()).minimize(self.loss_function)
         self.correct_prediction = tf.equal(tf.argmax(Y, 1),
                                            tf.argmax(self.Y_, 1))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction,
