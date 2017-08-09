@@ -32,10 +32,16 @@ class Optimizers(Enum):
 
 class ActivationFunctions(Enum):
     softmax = 'softmax'
+    softplus = 'softplus'
+    softsign = 'softsign'
     sigmoid = 'sigmoid'
     tanh = 'tanh'
+    elu = 'elu'
     relu = 'relu'
+    relu6 = 'relu6'
+    crelu = 'crelu'
     dropout = 'drouput'
+    bias_add = 'bias_add'
 
 
 class InitialValues(Enum):
@@ -123,7 +129,7 @@ class NeuralNetwork(Block):
         Y_logits = globals()['layer{}_logits'.format(len(self.layers()) - 1)]
 
         if self.loss().value == 'cross_entropy':
-            self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y)) # * 1000.0
+            self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y))  # *1000.0
         if self.loss().value == 'softmax_cross_entropy_with_logits':
             self.loss_function = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=Y_logits, labels=self.Y_)) # * 100
         self.train_step = getattr(tf.train, self.optimizer().value)(self.learning_rate()).minimize(self.loss_function)
