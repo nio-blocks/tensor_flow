@@ -134,7 +134,6 @@ class NeuralNetwork(Block):
         Y_logits = globals()['layer{}_logits'.format(len(self.layers()) - 1)]
 
         if self.loss().value == 'cross_entropy':
-            # *1000.0
             self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y))
         if self.loss().value == 'softmax_cross_entropy_with_logits':
             self.loss_function = tf.reduce_mean(
