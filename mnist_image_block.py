@@ -23,6 +23,10 @@ class MNISTImageLoader(Block):
     shuffle = BoolProperty(title='Shuffle Batch', default=True, visible=False)
     # todo: validation_size prop
 
+    def __init__(self):
+        super().__init__()
+        self.mnist = None
+
     def configure(self, context):
         super().configure(context)
         self.mnist = mnist_data.read_data_sets('data',
