@@ -9,7 +9,7 @@ from nio.properties import VersionProperty, Property, FloatProperty, \
 from nio.signal.base import Signal
 
 import tensorflow as tf
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' # supress TF build warnings
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # supress TF build warnings
 
 
 class LossFunctions(Enum):
@@ -19,6 +19,15 @@ class LossFunctions(Enum):
 
 class Optimizers(Enum):
     gradient_descent = 'GradientDescentOptimizer'
+    proximal_gradient_descent = 'ProximalGradientDescentOptimizer'
+    adadelta = 'AdadeltaOptimizer'
+    adagrad = 'AdagradOptimizer'
+    proximal_adagrad = 'ProximalAdagradOptimizer'
+    adagradDA = 'AdagradDAOptimizer'
+    momentum = 'MomentumOptimizer'
+    adam = 'AdamOptimizer'
+    ftrl = 'FtrlOptimizer'
+    rms_prop = 'RMSPropOptimizer'
 
 
 class ActivationFunctions(Enum):
