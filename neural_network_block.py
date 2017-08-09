@@ -165,7 +165,7 @@ class NeuralNetwork(Block):
         super().stop()
 
     def _train(self, signal):
-        batch_X = signal.images
+        batch_X = signal.batch
         batch_Y = signal.labels
         return self.sess.run(
             [self.train_step, self.accuracy, self.loss_function],
@@ -174,7 +174,7 @@ class NeuralNetwork(Block):
                        self.prob_keep: 1 - self.dropout()})
 
     def _test(self, signal):
-        batch_X = signal.images
+        batch_X = signal.batch
         batch_Y = signal.labels
         return self.sess.run(
             [self.accuracy, self.loss_function],
@@ -183,7 +183,7 @@ class NeuralNetwork(Block):
                        self.prob_keep: 1})
 
     def _predict(self, signal):
-        batch_X = signal.images
+        batch_X = signal.batch
         return self.sess.run(
             self.prediction,
             feed_dict={self.X: batch_X,
