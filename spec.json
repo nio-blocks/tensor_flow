@@ -1,0 +1,84 @@
+{
+  "nio/MNISTImageLoader": {
+    "version": "0.1.0",
+    "description": "",
+    "properties": {
+      "batch_size": {
+        "title": "Images per Batch",
+        "type": "IntType",
+        "description": "",
+        "default": 100
+      },
+      "shuffle": {
+        "title": "Shuffle Batch",
+        "type": "BoolType",
+        "description": "",
+        "default": true
+      }
+    },
+    "inputs": {
+      "default": {
+        "description": ""
+      }
+    },
+    "outputs": {
+      "default": {
+        "description": ""
+      }
+    },
+    "commands": {}
+  },
+  "nio/NeuralNetwork": {
+    "version": "0.1.0",
+    "description": "",
+    "properties": {
+      "dropout": {
+        "title": "Dropout Percentage During Training",
+        "type": "FloatType",
+        "description": "",
+        "default": 0
+      },
+      "input_dims": {
+        "title": "Input Tensor Dimensions",
+        "type": "Type",
+        "description": "",
+        "default": "{{ [None, 28, 28, 1] }}"
+      },
+      "layers": {
+        "title": "Network Layers",
+        "type": "ListType",
+        "description": "",
+        "default": []
+      },
+      "learning_rate": {
+        "title": "Learning Rate",
+        "type": "FloatType",
+        "description": "",
+        "default": 0.005
+      },
+      "loss": {
+        "title": "Loss Function",
+        "type": "SelectType",
+        "description": "",
+        "default": "cross_entropy"
+      },
+      "optimizer": {
+        "title": "Optimizer",
+        "type": "SelectType",
+        "description": "",
+        "default": "GradientDescentOptimizer"
+      }
+    },
+    "inputs": {
+      "default": {
+        "description": ""
+      }
+    },
+    "outputs": {
+      "default": {
+        "description": ""
+      }
+    },
+    "commands": {}
+  }
+}
