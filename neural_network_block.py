@@ -1,38 +1,58 @@
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL']='2' # supress TF build warnings
 from enum import Enum
+
 from nio.block.base import Block
 from nio.block.terminals import input
 from nio.properties import VersionProperty, Property, FloatProperty, \
                            PropertyHolder, IntProperty, SelectProperty, \
-                           ListProperty, BoolProperty, StringProperty
+                           ListProperty, BoolProperty
 from nio.signal.base import Signal
+
 import tensorflow as tf
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # supress TF build warnings
 
 
 class LossFunctions(Enum):
-
     cross_entropy = 'cross_entropy'
     softmax_cross_entropy_with_logits = 'softmax_cross_entropy_with_logits'
 
-class ActivationFunctions(Enum):
 
+class Optimizers(Enum):
+    gradient_descent = 'GradientDescentOptimizer'
+    proximal_gradient_descent = 'ProximalGradientDescentOptimizer'
+    adadelta = 'AdadeltaOptimizer'
+    adagrad = 'AdagradOptimizer'
+    proximal_adagrad = 'ProximalAdagradOptimizer'
+    adagradDA = 'AdagradDAOptimizer'
+    momentum = 'MomentumOptimizer'
+    adam = 'AdamOptimizer'
+    ftrl = 'FtrlOptimizer'
+    rms_prop = 'RMSPropOptimizer'
+
+
+class ActivationFunctions(Enum):
     softmax = 'softmax'
+    softplus = 'softplus'
+    softsign = 'softsign'
     sigmoid = 'sigmoid'
     tanh = 'tanh'
+    elu = 'elu'
     relu = 'relu'
+    relu6 = 'relu6'
+    crelu = 'crelu'
     dropout = 'drouput'
+    bias_add = 'bias_add'
+
 
 class InitialValues(Enum):
-
     random = 'truncated_normal'
     zeros = 'zeros'
     ones = 'ones'
 
-class Layers(PropertyHolder):
 
+class Layers(PropertyHolder):
     count = IntProperty(title='Number of Neurons',
-                          default=10)
+                        default=10)
     activation = SelectProperty(ActivationFunctions,
                                 title='Activation Function',
                                 default=ActivationFunctions.softmax)
@@ -40,6 +60,7 @@ class Layers(PropertyHolder):
                                      title='Initial Weight Values',
                                      default=InitialValues.random)
     bias = BoolProperty(title='Add Bias Unit', default=True)
+
 
 @input('predict')
 @input('test')
@@ -53,10 +74,11 @@ class NeuralNetwork(Block):
     learning_rate = FloatProperty(title='Learning Rate', default=0.005)
     layers = ListProperty(Layers, title='Network Layers', default=[])
     loss = SelectProperty(LossFunctions,
-                                   title='Loss Function',
-                                   default=LossFunctions.cross_entropy)
-    optimizer = StringProperty(title='Optimizer',
-                               default='GradientDescentOptimizer')
+                          title='Loss Function',
+                          default=LossFunctions.cross_entropy)
+    optimizer = SelectProperty(Optimizers,
+                               title="Optimizer",
+                               default=Optimizers.gradient_descent)
     dropout = FloatProperty(title='Dropout Percentage During Training',
                             default=0)
 
@@ -65,10 +87,17 @@ class NeuralNetwork(Block):
         self.X = None
         self.Y_ = None
         self.prob_keep = None
+        self.train_step = None
+        self.correct_prediction = None
+        self.accuracy = None
+        self.prediction = None
+        self.sess = None
+        self.loss_function = None
 
     def configure(self, context):
         super().configure(context)
-        width, height= self.input_dims()[1:-1]
+
+        width, height = self.input_dims()[1:-1]
         tf.set_random_seed(0)
         # input tensors [batch size, width, height, color channels]
         self.X = tf.placeholder(tf.float32, self.input_dims())
@@ -76,10 +105,15 @@ class NeuralNetwork(Block):
         self.Y_ = tf.placeholder(tf.float32, [None, self.layers()[-1].count()])
         self.prob_keep = tf.placeholder(tf.float32)
         prev_layer = tf.reshape(self.X, [-1, width * height])
+
         for i, layer in enumerate(self.layers()):
             name = 'layer{}'.format(i)
-            W = tf.Variable(getattr(tf, layer.initial_weights().value)([int(prev_layer.shape[-1]), layer.count()]))
-            b = tf.Variable(getattr(tf, layer.initial_weights().value)([layer.count()]))
+            W = tf.Variable(
+                getattr(tf, layer.initial_weights().value)
+                ([int(prev_layer.shape[-1]), layer.count()]))
+            b = tf.Variable(
+                getattr(tf, layer.initial_weights().value)
+                ([layer.count()]))
             # logits may be used by loss function so we create a variable for
             # each layer before and after activation
             # todo: only for last layer!!!
@@ -88,18 +122,26 @@ class NeuralNetwork(Block):
                     globals()[name + '_logits'] = tf.matmul(prev_layer, W) + b
                 else:
                     globals()[name + '_logits'] = tf.matmul(prev_layer, W)
-                globals()[name] = getattr(tf.nn, layer.activation().value)(globals()[name + '_logits'])
+                globals()[name] = \
+                    getattr(tf.nn, layer.activation().value)\
+                    (globals()[name + '_logits'])
             else:
                 name = name + '_d'
                 globals()[name] = tf.nn.dropout(prev_layer, self.prob_keep)
             prev_layer = globals()[name]
+
         Y = globals()['layer{}'.format(len(self.layers()) - 1)]
         Y_logits = globals()['layer{}_logits'.format(len(self.layers()) - 1)]
+
         if self.loss().value == 'cross_entropy':
-            self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y)) # * 1000.0
+            self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y))
         if self.loss().value == 'softmax_cross_entropy_with_logits':
-            self.loss_function = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=Y_logits, labels=self.Y_)) # * 100
-        self.train_step = getattr(tf.train, self.optimizer())(self.learning_rate()).minimize(self.loss_function)
+            self.loss_function = tf.reduce_mean(
+                tf.nn.softmax_cross_entropy_with_logits(logits=Y_logits,
+                                                        labels=self.Y_))
+        self.train_step = \
+            getattr(tf.train, self.optimizer().value) \
+            (self.learning_rate()).minimize(self.loss_function)
         self.correct_prediction = tf.equal(tf.argmax(Y, 1),
                                            tf.argmax(self.Y_, 1))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction,
@@ -132,7 +174,7 @@ class NeuralNetwork(Block):
         super().stop()
 
     def _train(self, signal):
-        batch_X = signal.images
+        batch_X = signal.batch
         batch_Y = signal.labels
         return self.sess.run(
             [self.train_step, self.accuracy, self.loss_function],
@@ -141,7 +183,7 @@ class NeuralNetwork(Block):
                        self.prob_keep: 1 - self.dropout()})
 
     def _test(self, signal):
-        batch_X = signal.images
+        batch_X = signal.batch
         batch_Y = signal.labels
         return self.sess.run(
             [self.accuracy, self.loss_function],
@@ -150,7 +192,7 @@ class NeuralNetwork(Block):
                        self.prob_keep: 1})
 
     def _predict(self, signal):
-        batch_X = signal.images
+        batch_X = signal.batch
         return self.sess.run(
             self.prediction,
             feed_dict={self.X: batch_X,
