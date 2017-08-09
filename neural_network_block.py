@@ -76,7 +76,6 @@ class NeuralNetwork(Block):
     loss = SelectProperty(LossFunctions,
                           title='Loss Function',
                           default=LossFunctions.cross_entropy)
-
     optimizer = SelectProperty(Optimizers,
                                title="Optimizer",
                                default=Optimizers.gradient_descent)
