@@ -108,8 +108,12 @@ class NeuralNetwork(Block):
 
         for i, layer in enumerate(self.layers()):
             name = 'layer{}'.format(i)
-            W = tf.Variable(getattr(tf, layer.initial_weights().value)([int(prev_layer.shape[-1]), layer.count()]))
-            b = tf.Variable(getattr(tf, layer.initial_weights().value)([layer.count()]))
+            W = tf.Variable(
+                getattr(tf, layer.initial_weights().value)
+                ([int(prev_layer.shape[-1]), layer.count()]))
+            b = tf.Variable(
+                getattr(tf, layer.initial_weights().value)
+                ([layer.count()]))
             # logits may be used by loss function so we create a variable for
             # each layer before and after activation
             # todo: only for last layer!!!
@@ -118,7 +122,9 @@ class NeuralNetwork(Block):
                     globals()[name + '_logits'] = tf.matmul(prev_layer, W) + b
                 else:
                     globals()[name + '_logits'] = tf.matmul(prev_layer, W)
-                globals()[name] = getattr(tf.nn, layer.activation().value)(globals()[name + '_logits'])
+                globals()[name] = \
+                    getattr(tf.nn, layer.activation().value)\
+                    (globals()[name + '_logits'])
             else:
                 name = name + '_d'
                 globals()[name] = tf.nn.dropout(prev_layer, self.prob_keep)
@@ -128,10 +134,15 @@ class NeuralNetwork(Block):
         Y_logits = globals()['layer{}_logits'.format(len(self.layers()) - 1)]
 
         if self.loss().value == 'cross_entropy':
-            self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y))  # *1000.0
+            # *1000.0
+            self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y))
         if self.loss().value == 'softmax_cross_entropy_with_logits':
-            self.loss_function = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=Y_logits, labels=self.Y_)) # * 100
-        self.train_step = getattr(tf.train, self.optimizer().value)(self.learning_rate()).minimize(self.loss_function)
+            self.loss_function = tf.reduce_mean(
+                tf.nn.softmax_cross_entropy_with_logits(logits=Y_logits,
+                                                        labels=self.Y_))
+        self.train_step = \
+            getattr(tf.train, self.optimizer().value) \
+            (self.learning_rate()).minimize(self.loss_function)
         self.correct_prediction = tf.equal(tf.argmax(Y, 1),
                                            tf.argmax(self.Y_, 1))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction,
