@@ -1,4 +1,4 @@
-from unittest.mock import patch, MagicMock, ANY
+from unittest.mock import patch, ANY
 from nio.block.terminals import DEFAULT_TERMINAL
 from nio.signal.base import Signal
 from nio.testing.block_test_case import NIOBlockTestCase
