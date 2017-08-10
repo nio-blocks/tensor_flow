@@ -100,12 +100,14 @@ class NeuralNetwork(Block):
         width, height = self.input_dims()[1:-1]
         tf.set_random_seed(0)
         # input tensors [batch size, width, height, color channels]
-        self.X = tf.placeholder(tf.float32, self.input_dims())
+        self.X = tf.placeholder(tf.float32,
+                                shape=self.input_dims())
         # desired output (labels)
-        self.Y_ = tf.placeholder(tf.float32, [None, self.layers()[-1].count()])
+        self.Y_ = tf.placeholder(tf.float32,
+                                 shape=[None, self.layers()[-1].count()])
         self.prob_keep = tf.placeholder(tf.float32)
 
-        prev_layer = tf.reshape(self.X, [-1, width * height])
+        prev_layer = tf.reshape(self.X, shape=[-1, width * height])
         layers_logits = {}
         for i, layer in enumerate(self.layers()):
             W = tf.Variable(
