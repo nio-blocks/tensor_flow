@@ -47,7 +47,7 @@
       "input_dims": {
         "title": "Input Tensor Dimensions",
         "type": "Type",
-        "description": "",
+        "description": "This is a list that describes the dimensions of the input data. The first argument here is the batch size, which must be None to accept arbitrary-sized inputs.",
         "default": "{{ [None, 784, 1] }}"
       },
       "layers": {
