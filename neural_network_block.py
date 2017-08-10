@@ -40,7 +40,7 @@ class ActivationFunctions(Enum):
     relu = 'relu'
     relu6 = 'relu6'
     crelu = 'crelu'
-    dropout = 'drouput'
+    dropout = 'dropout'
     bias_add = 'bias_add'
 
 
@@ -69,8 +69,7 @@ class NeuralNetwork(Block):
 
     version = VersionProperty('0.1.0')
     input_dims = Property(title='Input Tensor Dimensions',
-                          default='{{ [None, 28, 28, 1] }}',
-                          visible=False)
+                          default='{{ [None, 784, 1] }}')
     learning_rate = FloatProperty(title='Learning Rate', default=0.005)
     layers = ListProperty(Layers, title='Network Layers', default=[])
     loss = SelectProperty(LossFunctions,
@@ -81,6 +80,7 @@ class NeuralNetwork(Block):
                                default=Optimizers.gradient_descent)
     dropout = FloatProperty(title='Dropout Percentage During Training',
                             default=0)
+    random_seed = IntProperty(title="Random seed", default=0, visible=False)
 
     def __init__(self):
         super().__init__()
@@ -97,18 +97,17 @@ class NeuralNetwork(Block):
     def configure(self, context):
         super().configure(context)
 
-        width, height = self.input_dims()[1:-1]
-        tf.set_random_seed(0)
-        # input tensors [batch size, width, height, color channels]
+        tf.set_random_seed(self.random_seed())
+        # input tensors shape
         self.X = tf.placeholder(tf.float32,
                                 shape=self.input_dims())
-        # desired output (labels)
+        # specify desired output (labels)
         self.Y_ = tf.placeholder(tf.float32,
                                  shape=[None, self.layers()[-1].count()])
         self.prob_keep = tf.placeholder(tf.float32)
 
-        prev_layer = tf.reshape(self.X, shape=[-1, width * height])
         layers_logits = {}
+        prev_layer = self.X
         for i, layer in enumerate(self.layers()):
             W = tf.Variable(
                 getattr(tf, layer.initial_weights().value)
@@ -116,26 +115,29 @@ class NeuralNetwork(Block):
             b = tf.Variable(
                 getattr(tf, layer.initial_weights().value)
                 ([layer.count()]))
-            # logits may be used by loss function so we create a variable for
-            # each layer before and after activation
-            # todo: only for last layer!!!
+
             if layer.activation().value != 'dropout':
-                name = 'layer{}'.format(i)
-                if layer.bias.value:
-                    layers_logits[name + '_logits'] = tf.matmul(prev_layer, W) + b
+                if i == (len(self.layers()) - 1):
+                    # calculate logits seperately for use by loss function
+                    if layer.bias.value:
+                        layers_logits[name + '_logits'] = tf.matmul(prev_layer, W) + b
+                    else:
+                        layers_logits[name + '_logits'] = tf.matmul(prev_layer, W)
+                        layers_logits[name] = getattr(tf.nn, layer.activation().value)(layers_logits[name + '_logits'])
                 else:
-                    layers_logits[name + '_logits'] = tf.matmul(prev_layer, W)
-                layers_logits[name] = \
-                    getattr(tf.nn, layer.activation().value)\
-                    (layers_logits[name + '_logits'])
+                    if layer.bias.value:
+                        logits = tf.matmul(prev_layer, W) + b
+                    else:
+                        logits = tf.matmul(prev_layer, W)
+                    layers_logits[name] = getattr(tf.nn, layer.activation().value)(logits)
             else:
                 name = 'layer{}_d'.format(i)
                 layers_logits[name] = tf.nn.dropout(prev_layer, self.prob_keep)
             prev_layer = layers_logits[name]
 
-        layer_num = len(self.layers()) - 1
-        Y = layers_logits['layer{}'.format(layer_num)]
-        Y_logits = layers_logits['layer{}_logits'.format(layer_num)]
+        output_layer_num = len(self.layers()) - 1
+        Y = layers_logits['layer{}'.format(output_layer_num)]
+        Y_logits = layers_logits['layer{}_logits'.format(output_layer_num)]
 
         if self.loss().value == 'cross_entropy':
             self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y))
@@ -179,20 +181,20 @@ class NeuralNetwork(Block):
 
     def _train(self, signal):
         batch_X = signal.batch
-        batch_Y = signal.labels
+        batch_Y_ = signal.labels
         return self.sess.run(
             [self.train_step, self.accuracy, self.loss_function],
             feed_dict={self.X: batch_X,
-                       self.Y_: batch_Y,
+                       self.Y_: batch_Y_,
                        self.prob_keep: 1 - self.dropout()})
 
     def _test(self, signal):
         batch_X = signal.batch
-        batch_Y = signal.labels
+        batch_Y_ = signal.labels
         return self.sess.run(
             [self.accuracy, self.loss_function],
             feed_dict={self.X: batch_X,
-                       self.Y_: batch_Y,
+                       self.Y_: batch_Y_,
                        self.prob_keep: 1})
 
     def _predict(self, signal):
