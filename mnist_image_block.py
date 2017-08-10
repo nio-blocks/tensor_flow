@@ -32,7 +32,7 @@ class MNISTImageLoader(Block):
         self.mnist = mnist_data.read_data_sets(
             'data',
             one_hot=True,
-            reshape=False,
+            reshape=True,
             validation_size=self.validation_size())
 
     def process_signals(self, signals, input_id=None):
