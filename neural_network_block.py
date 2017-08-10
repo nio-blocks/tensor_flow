@@ -104,10 +104,10 @@ class NeuralNetwork(Block):
         # desired output (labels)
         self.Y_ = tf.placeholder(tf.float32, [None, self.layers()[-1].count()])
         self.prob_keep = tf.placeholder(tf.float32)
-        prev_layer = tf.reshape(self.X, [-1, width * height])
 
+        prev_layer = tf.reshape(self.X, [-1, width * height])
+        layers_logits = {}
         for i, layer in enumerate(self.layers()):
-            name = 'layer{}'.format(i)
             W = tf.Variable(
                 getattr(tf, layer.initial_weights().value)
                 ([int(prev_layer.shape[-1]), layer.count()]))
@@ -118,20 +118,22 @@ class NeuralNetwork(Block):
             # each layer before and after activation
             # todo: only for last layer!!!
             if layer.activation().value != 'dropout':
+                name = 'layer{}'.format(i)
                 if layer.bias.value:
-                    globals()[name + '_logits'] = tf.matmul(prev_layer, W) + b
+                    layers_logits[name + '_logits'] = tf.matmul(prev_layer, W) + b
                 else:
-                    globals()[name + '_logits'] = tf.matmul(prev_layer, W)
-                globals()[name] = \
+                    layers_logits[name + '_logits'] = tf.matmul(prev_layer, W)
+                layers_logits[name] = \
                     getattr(tf.nn, layer.activation().value)\
-                    (globals()[name + '_logits'])
+                    (layers_logits[name + '_logits'])
             else:
-                name = name + '_d'
-                globals()[name] = tf.nn.dropout(prev_layer, self.prob_keep)
-            prev_layer = globals()[name]
+                name = 'layer{}_d'.format(i)
+                layers_logits[name] = tf.nn.dropout(prev_layer, self.prob_keep)
+            prev_layer = layers_logits[name]
 
-        Y = globals()['layer{}'.format(len(self.layers()) - 1)]
-        Y_logits = globals()['layer{}_logits'.format(len(self.layers()) - 1)]
+        layer_num = len(self.layers()) - 1
+        Y = layers_logits['layer{}'.format(layer_num)]
+        Y_logits = layers_logits['layer{}_logits'.format(layer_num)]
 
         if self.loss().value == 'cross_entropy':
             self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y))
