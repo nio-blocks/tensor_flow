@@ -1,12 +1,14 @@
+from unittest import skip
 from unittest.mock import patch, MagicMock, ANY
 from nio.block.terminals import DEFAULT_TERMINAL
 from nio.signal.base import Signal
 from nio.testing.block_test_case import NIOBlockTestCase
 from ..neural_network_block import NeuralNetwork
+import tensorflow as tf
 # https://www.tensorflow.org/api_guides/python/test
 
 
-class TestNeuralNetworkBlock(NIOBlockTestCase):
+class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
 
     block_config = {'layers': [{}]}
 
@@ -64,7 +66,7 @@ class TestNeuralNetworkBlock(NIOBlockTestCase):
         self.assertEqual(mock_sess.return_value.close.call_count, 1)
         self.assert_num_signals_notified(1)
         self.assertDictEqual(
-            {'prediction': ANY,'input_id': 'predict'},
+            {'prediction': ANY, 'input_id': 'predict'},
             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
 
     @patch('tensorflow.Session')
@@ -97,7 +99,7 @@ class TestNeuralNetworkBlock(NIOBlockTestCase):
         # this should be data that
         test_input_signal = {'batch': [], 'labels': []}
         # this should be data that
-        predict_input_signal = {'batch': [], 'labels': []}
+        predict_input_signal = {'batch': []}
 
         blk = NeuralNetwork()
         self.configure_block(blk, self.block_config)
@@ -126,7 +128,6 @@ class TestNeuralNetworkBlock(NIOBlockTestCase):
             self.last_notified[DEFAULT_TERMINAL][2].to_dict())
 
 
-
 class TestNeuralNetworkBlockMultiLayer(TestNeuralNetworkBlock):
 
     # test two layers
@@ -138,3 +139,8 @@ class TestNeuralNetworkBlockMultiLayer(TestNeuralNetworkBlock):
             "bias": True
         }]
     }
+
+    def test_layers_created(self):
+        # create a bunch of layers and assert that the number of layers were
+        # actually created
+        pass
