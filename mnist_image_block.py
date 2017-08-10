@@ -21,7 +21,7 @@ class MNISTImageLoader(Block):
     version = VersionProperty('0.1.0')
     batch_size = IntProperty(title='Images per Batch', default=100)
     shuffle = BoolProperty(title='Shuffle Batch', default=True, visible=False)
-    # todo: validation_size prop
+    validation_size = IntProperty(title='Validation Size', default=0)
 
     def __init__(self):
         super().__init__()
@@ -29,10 +29,11 @@ class MNISTImageLoader(Block):
 
     def configure(self, context):
         super().configure(context)
-        self.mnist = mnist_data.read_data_sets('data',
-                                               one_hot=True,
-                                               reshape=False,
-                                               validation_size=0)
+        self.mnist = mnist_data.read_data_sets(
+            'data',
+            one_hot=True,
+            reshape=False,
+            validation_size=self.validation_size())
 
     def process_signals(self, signals, input_id=None):
         output_signals = []
