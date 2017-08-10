@@ -14,6 +14,12 @@
         "type": "BoolType",
         "description": "",
         "default": true
+      },
+      "validation_size": {
+        "title": "Validation Size",
+        "type": "IntType",
+        "description": "",
+        "default": 0
       }
     },
     "inputs": {
@@ -42,7 +48,7 @@
         "title": "Input Tensor Dimensions",
         "type": "Type",
         "description": "",
-        "default": "{{ [None, 28, 28, 1] }}"
+        "default": "{{ [None, 784, 1] }}"
       },
       "layers": {
         "title": "Network Layers",
@@ -67,6 +73,12 @@
         "type": "SelectType",
         "description": "",
         "default": "GradientDescentOptimizer"
+      },
+      "random_seed": {
+        "title": "Random seed",
+        "type": "IntType",
+        "description": "",
+        "default": 0
       }
     },
     "inputs": {
