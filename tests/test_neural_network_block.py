@@ -66,3 +66,16 @@ class TestNeuralNetworkBlock(NIOBlockTestCase):
         self.assertDictEqual(
             {'prediction': ANY,'input_id': 'predict'},
             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
+
+
+class TestNeuralNetworkBlockMultiLayer(TestNeuralNetworkBlock):
+
+    # test two layers
+    block_config = {
+        'layers': [{
+            "count": 10,
+            "activation": "softmax",
+            "initial_weights": "truncated_normal",
+            "bias": True
+        }]
+    }
