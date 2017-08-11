@@ -69,7 +69,7 @@ class NeuralNetwork(Block):
 
     version = VersionProperty('0.1.0')
     input_dims = Property(title='Input Tensor Dimensions',
-                          default='{{ [None, 784, 1] }}')
+                          default='{{ [None, 784] }}')
     learning_rate = FloatProperty(title='Learning Rate', default=0.005)
     layers = ListProperty(Layers, title='Network Layers', default=[])
     loss = SelectProperty(LossFunctions,
@@ -116,6 +116,7 @@ class NeuralNetwork(Block):
                 getattr(tf, layer.initial_weights().value)
                 ([layer.count()]))
 
+            name = 'layer{}'.format(i)
             if layer.activation().value != 'dropout':
                 if i == (len(self.layers()) - 1):
                     # calculate logits seperately for use by loss function
@@ -123,7 +124,7 @@ class NeuralNetwork(Block):
                         layers_logits[name + '_logits'] = tf.matmul(prev_layer, W) + b
                     else:
                         layers_logits[name + '_logits'] = tf.matmul(prev_layer, W)
-                        layers_logits[name] = getattr(tf.nn, layer.activation().value)(layers_logits[name + '_logits'])
+                    layers_logits[name] = getattr(tf.nn, layer.activation().value)(layers_logits[name + '_logits'])
                 else:
                     if layer.bias.value:
                         logits = tf.matmul(prev_layer, W) + b
