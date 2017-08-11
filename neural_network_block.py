@@ -66,7 +66,6 @@ class LayerConfig(PropertyHolder):
     input_dims = Property(title='Input Tensor Dimensions',
                           default='{{ [None, 784] }}')
     learning_rate = FloatProperty(title='Learning Rate', default=0.005)
-    layers = ListProperty(Layers, title='Network Layers', default=[{}])
     loss = SelectProperty(LossFunctions,
                           title='Loss Function',
                           default=LossFunctions.cross_entropy)
@@ -83,9 +82,10 @@ class LayerConfig(PropertyHolder):
 @input('train')
 class NeuralNetwork(Block):
 
-    layer_config = ObjectProperty(LayerConfig,
+    network_config = ObjectProperty(LayerConfig,
                                   title='ANN Configuration',
                                   defaul=LayerConfig())
+    layers = ListProperty(Layers, title='Network Layers', default=[{}])
     version = VersionProperty('0.1.0')
 
     def __init__(self):
@@ -102,18 +102,18 @@ class NeuralNetwork(Block):
 
     def configure(self, context):
         super().configure(context)
-        tf.set_random_seed(self.layer_config().random_seed())
+        tf.set_random_seed(self.network_config().random_seed())
         # input tensors shape
         self.X = tf.placeholder(tf.float32,
-                                shape=self.layer_config().input_dims())
+                                shape=self.network_config().input_dims())
         # specify desired output (labels)
         self.Y_ = tf.placeholder(tf.float32,
-                                 shape=[None, self.layer_config().layers()[-1].count()])
+                                 shape=[None, self.layers()[-1].count()])
         self.prob_keep = tf.placeholder(tf.float32)
 
         layers_logits = {}
         prev_layer = self.X
-        for i, layer in enumerate(self.layer_config().layers()):
+        for i, layer in enumerate(self.layers()):
             W = tf.Variable(
                 getattr(tf, layer.initial_weights().value)
                 ([int(prev_layer.shape[-1]), layer.count()]))
@@ -123,7 +123,7 @@ class NeuralNetwork(Block):
 
             name = 'layer{}'.format(i)
             if layer.activation().value != 'dropout':
-                if i == (len(self.layer_config().layers()) - 1):
+                if i == (len(self.layers()) - 1):
                     # calculate logits seperately for use by loss function
                     if layer.bias.value:
                         layers_logits[name + '_logits'] = tf.matmul(prev_layer, W) + b
@@ -141,19 +141,19 @@ class NeuralNetwork(Block):
                 layers_logits[name] = tf.nn.dropout(prev_layer, self.prob_keep)
             prev_layer = layers_logits[name]
 
-        output_layer_num = len(self.layer_config().layers()) - 1
+        output_layer_num = len(self.layers()) - 1
         Y = layers_logits['layer{}'.format(output_layer_num)]
         Y_logits = layers_logits['layer{}_logits'.format(output_layer_num)]
 
-        if self.layer_config().loss().value == 'cross_entropy':
+        if self.network_config().loss().value == 'cross_entropy':
             self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y))
-        if self.layer_config().loss().value == 'softmax_cross_entropy_with_logits':
+        if self.network_config().loss().value == 'softmax_cross_entropy_with_logits':
             self.loss_function = tf.reduce_mean(
                 tf.nn.softmax_cross_entropy_with_logits(logits=Y_logits,
                                                         labels=self.Y_))
         self.train_step = \
-            getattr(tf.train, self.layer_config().optimizer().value) \
-            (self.layer_config().learning_rate()).minimize(self.loss_function)
+            getattr(tf.train, self.network_config().optimizer().value) \
+            (self.network_config().learning_rate()).minimize(self.loss_function)
         self.correct_prediction = tf.equal(tf.argmax(Y, 1),
                                            tf.argmax(self.Y_, 1))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction,
@@ -192,7 +192,7 @@ class NeuralNetwork(Block):
             [self.train_step, self.accuracy, self.loss_function],
             feed_dict={self.X: batch_X,
                        self.Y_: batch_Y_,
-                       self.prob_keep: 1 - self.layer_config().dropout()})
+                       self.prob_keep: 1 - self.network_config().dropout()})
 
     def _test(self, signal):
         batch_X = signal.batch
