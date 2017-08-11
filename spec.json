@@ -41,7 +41,7 @@
       "layers": {
         "title": "Network Layers",
         "type": "ListType",
-        "description": "",
+        "description": "Adds a layer with given number of neurons, whether to add a bias value, the activation function, and initial configured weights.",
         "default": [
           {
             "bias": true,
