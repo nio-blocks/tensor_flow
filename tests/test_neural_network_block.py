@@ -10,7 +10,7 @@ import tensorflow as tf
 
 class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
 
-    block_config = {'layers': [{}]}
+    block_config = {}
 
     @patch('tensorflow.Session')
     def test_process_train_signals(self, mock_sess):
