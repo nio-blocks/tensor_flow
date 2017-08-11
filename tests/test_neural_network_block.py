@@ -1,4 +1,3 @@
-from unittest import skip
 from unittest.mock import patch, MagicMock, ANY
 from nio.block.terminals import DEFAULT_TERMINAL
 from nio.signal.base import Signal
