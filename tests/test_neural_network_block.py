@@ -140,19 +140,27 @@ class TestNeuralNetworkBlockMultiLayer(TestNeuralNetworkBlock):
         }]
     }
 
+    @staticmethod
+    def _get_number_of_layers(sess):
+        """returns the number of created layers in a session"""
+        unique_layers = [name.split('/')[0] for name in
+                         sess.graph._nodes_by_name.keys()
+                         if "layer" in name.split('/')[0]]
+        return len(set(unique_layers))
+
     def test_layers_created(self):
-        # create a bunch of layers and assert that the number of layers were
+        # create two layers and assert that the number of layers were
         # actually created
         block_config = {
             'layers': [
                 {
-                    "count": 10,
+                    "count": 2,
                     "activation": "softmax",
                     "initial_weights": "truncated_normal",
                     "bias": True
                 },
                 {
-                    "count": 10,
+                    "count": 2,
                     "activation": "softmax",
                     "initial_weights": "truncated_normal",
                     "bias": True
@@ -161,11 +169,9 @@ class TestNeuralNetworkBlockMultiLayer(TestNeuralNetworkBlock):
         }
 
         blk = NeuralNetwork()
-        self.configure_block(blk, self.block_config)
+        self.configure_block(blk, block_config)
         blk.start()
         blk.stop()
 
-        import pdb; pdb.set_trace()
-
-        layers_created = blk.sess.graph
-        self.assertEqual(len(blk.layers()), layers_created)
+        self.assertEqual(len(blk.layers()),
+                         self._get_number_of_layers(blk.sess))
