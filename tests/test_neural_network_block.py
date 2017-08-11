@@ -93,11 +93,14 @@ class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
                                                   train_mock,
                                                   test_mock(),
                                                   predict_mock()]
-        # this should be data that
+        # "batch" here should be a batch of input data to train with. This data
+        # should not appear in test or predict. "Labels" is the corresponding
+        # correct results for the given input
         train_input_signal = {'batch': [], 'labels': []}
-        # this should be data that
+        # "batch" here should be input data that didn't exist in train.
+        # "Labels" again being correct output.
         test_input_signal = {'batch': [], 'labels': []}
-        # this should be data that
+        # "batch" here is input data for the network to do prediction on
         predict_input_signal = {'batch': []}
 
         blk = NeuralNetwork()
