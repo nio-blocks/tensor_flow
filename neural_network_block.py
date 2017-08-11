@@ -63,7 +63,7 @@ class Layers(PropertyHolder):
 
 
 class NetworkConfig(PropertyHolder):
-    input_dim = IntProperty(title='Input Tensor Dimension',
+    input_dim = IntProperty(title='Number of Inputs',
                             default=784)
     learning_rate = FloatProperty(title='Learning Rate', default=0.005)
     loss = SelectProperty(LossFunctions,
