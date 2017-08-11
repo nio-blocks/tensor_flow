@@ -29,7 +29,7 @@ class TestMNISTImageLoader(NIOBlockTestCase):
                                              validation_size=0)
         self.assert_num_signals_notified(len(train_signals + test_signals))
         self.assertDictEqual(
-            {'images': ANY, 'labels': ANY, 'input_id': ANY},
+            {'batch': ANY, 'labels': ANY, 'input_id': ANY},
             self.last_notified[DEFAULT_TERMINAL][-1][-1].to_dict())
         for i, arg in enumerate(
                 mock_dataset.return_value.train.next_batch.call_args_list):
