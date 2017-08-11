@@ -63,8 +63,8 @@ class Layers(PropertyHolder):
 
 
 class NetworkConfig(PropertyHolder):
-    input_dims = Property(title='Input Tensor Dimensions',
-                          default='{{ [None, 784] }}')
+    input_dim = IntProperty(title='Input Tensor Dimension',
+                            default=784)
     learning_rate = FloatProperty(title='Learning Rate', default=0.005)
     loss = SelectProperty(LossFunctions,
                           title='Loss Function',
@@ -110,7 +110,7 @@ class NeuralNetwork(Block):
         tf.set_random_seed(self.network_config().random_seed())
         # input tensors shape
         self.X = tf.placeholder(tf.float32,
-                                shape=self.network_config().input_dims())
+                                shape=[None, self.network_config().input_dim()])
         # specify desired output (labels)
         self.Y_ = tf.placeholder(tf.float32,
                                  shape=[None, self.layers()[-1].count()])

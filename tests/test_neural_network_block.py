@@ -143,4 +143,29 @@ class TestNeuralNetworkBlockMultiLayer(TestNeuralNetworkBlock):
     def test_layers_created(self):
         # create a bunch of layers and assert that the number of layers were
         # actually created
-        pass
+        block_config = {
+            'layers': [
+                {
+                    "count": 10,
+                    "activation": "softmax",
+                    "initial_weights": "truncated_normal",
+                    "bias": True
+                },
+                {
+                    "count": 10,
+                    "activation": "softmax",
+                    "initial_weights": "truncated_normal",
+                    "bias": True
+                },
+            ]
+        }
+
+        blk = NeuralNetwork()
+        self.configure_block(blk, self.block_config)
+        blk.start()
+        blk.stop()
+
+        import pdb; pdb.set_trace()
+
+        layers_created = blk.sess.graph
+        self.assertEqual(len(blk.layers()), layers_created)
