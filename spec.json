@@ -35,50 +35,34 @@
     "commands": {}
   },
   "nio/NeuralNetwork": {
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "",
     "properties": {
-      "dropout": {
-        "title": "Dropout Percentage During Training",
-        "type": "FloatType",
-        "description": "",
-        "default": 0
-      },
-      "input_dims": {
-        "title": "Input Tensor Dimensions",
-        "type": "Type",
-        "description": "This is a list that describes the dimensions of the input data. The first argument here is the batch size, which must be None to accept arbitrary-sized inputs.",
-        "default": "{{ [None, 784, 1] }}"
-      },
       "layers": {
         "title": "Network Layers",
         "type": "ListType",
         "description": "",
-        "default": []
+        "default": [
+          {
+            "bias": true,
+            "count": 10,
+            "activation": "softmax",
+            "initial_weights": "random"
+          }
+        ]
       },
-      "learning_rate": {
-        "title": "Learning Rate",
-        "type": "FloatType",
+      "network_config": {
+        "title": "ANN Configuration",
+        "type": "ObjectType",
         "description": "",
-        "default": 0.005
-      },
-      "loss": {
-        "title": "Loss Function",
-        "type": "SelectType",
-        "description": "",
-        "default": "cross_entropy"
-      },
-      "optimizer": {
-        "title": "Optimizer",
-        "type": "SelectType",
-        "description": "",
-        "default": "GradientDescentOptimizer"
-      },
-      "random_seed": {
-        "title": "Random seed",
-        "type": "IntType",
-        "description": "",
-        "default": 0
+        "default": {
+          "random_seed": 0,
+          "dropout": 0,
+          "loss": "cross_entropy",
+          "optimizer": "gradient_descent",
+          "learning_rate": 0.005,
+          "input_dim": 784
+        }
       }
     },
     "inputs": {
