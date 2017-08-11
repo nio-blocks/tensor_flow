@@ -121,16 +121,21 @@ class NeuralNetwork(Block):
                 if i == (len(self.layers()) - 1):
                     # calculate logits seperately for use by loss function
                     if layer.bias.value:
-                        layers_logits[name + '_logits'] = tf.matmul(prev_layer, W) + b
+                        layers_logits[name + '_logits'] = \
+                            tf.matmul(prev_layer, W) + b
                     else:
-                        layers_logits[name + '_logits'] = tf.matmul(prev_layer, W)
-                    layers_logits[name] = getattr(tf.nn, layer.activation().value)(layers_logits[name + '_logits'])
+                        layers_logits[name + '_logits'] = \
+                            tf.matmul(prev_layer, W)
+                    layers_logits[name] = \
+                        getattr(tf.nn, layer.activation().value) \
+                            (layers_logits[name + '_logits'])
                 else:
                     if layer.bias.value:
                         logits = tf.matmul(prev_layer, W) + b
                     else:
                         logits = tf.matmul(prev_layer, W)
-                    layers_logits[name] = getattr(tf.nn, layer.activation().value)(logits)
+                    layers_logits[name] = \
+                        getattr(tf.nn, layer.activation().value)(logits)
             else:
                 name = 'layer{}_d'.format(i)
                 layers_logits[name] = tf.nn.dropout(prev_layer, self.prob_keep)
