@@ -62,7 +62,7 @@ class Layers(PropertyHolder):
     bias = BoolProperty(title='Add Bias Unit', default=True)
 
 
-class LayerConfig(PropertyHolder):
+class NetworkConfig(PropertyHolder):
     input_dims = Property(title='Input Tensor Dimensions',
                           default='{{ [None, 784] }}')
     learning_rate = FloatProperty(title='Learning Rate', default=0.005)
@@ -82,11 +82,16 @@ class LayerConfig(PropertyHolder):
 @input('train')
 class NeuralNetwork(Block):
 
-    network_config = ObjectProperty(LayerConfig,
-                                  title='ANN Configuration',
-                                  defaul=LayerConfig())
-    layers = ListProperty(Layers, title='Network Layers', default=[{}])
-    version = VersionProperty('0.1.0')
+    layers = ListProperty(Layers,
+                          title='Network Layers',
+                          default=[{'count': 10,
+                                    'activation': 'softmax',
+                                    'initial_weights': 'random',
+                                    'bias': True}])
+    network_config = ObjectProperty(NetworkConfig,
+                                    title='ANN Configuration',
+                                    defaul=NetworkConfig())
+    version = VersionProperty('0.2.0')
 
     def __init__(self):
         super().__init__()
