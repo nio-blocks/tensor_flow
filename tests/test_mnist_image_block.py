@@ -25,7 +25,7 @@ class TestMNISTImageLoader(NIOBlockTestCase):
         blk.stop()
         mock_dataset.assert_called_once_with('data',
                                              one_hot=True,
-                                             reshape=False,
+                                             reshape=True,
                                              validation_size=0)
         self.assert_num_signals_notified(len(train_signals + test_signals))
         self.assertDictEqual(
