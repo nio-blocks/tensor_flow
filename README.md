@@ -22,7 +22,7 @@ None
 Input:
 -------
 `{'batch': (ndarray(<images>), ndarray(<labels>))}`
-* `input_id` (kwarg): Possible values `train`... coming soon `test`!
+* `input_id` (kwarg): Possible values: `train`, `test`, `predict`
 
 Output:
 ---------
