@@ -1,0 +1,80 @@
+{
+  "nio/MNISTImageLoader": {
+    "version": "0.1.0",
+    "description": "",
+    "properties": {
+      "batch_size": {
+        "title": "Images per Batch",
+        "type": "IntType",
+        "description": "",
+        "default": 100
+      },
+      "shuffle": {
+        "title": "Shuffle Batch",
+        "type": "BoolType",
+        "description": "",
+        "default": true
+      },
+      "validation_size": {
+        "title": "Validation Size",
+        "type": "IntType",
+        "description": "",
+        "default": 0
+      }
+    },
+    "inputs": {
+      "default": {
+        "description": ""
+      }
+    },
+    "outputs": {
+      "default": {
+        "description": ""
+      }
+    },
+    "commands": {}
+  },
+  "nio/NeuralNetwork": {
+    "version": "0.2.0",
+    "description": "",
+    "properties": {
+      "layers": {
+        "title": "Network Layers",
+        "type": "ListType",
+        "description": "Adds a layer with given number of neurons, whether to add a bias value, the activation function, and initial configured weights.",
+        "default": [
+          {
+            "bias": true,
+            "count": 10,
+            "activation": "softmax",
+            "initial_weights": "random"
+          }
+        ]
+      },
+      "network_config": {
+        "title": "ANN Configuration",
+        "type": "ObjectType",
+        "description": "",
+        "default": {
+          "random_seed": 0,
+          "dropout": 0,
+          "loss": "cross_entropy",
+          "optimizer": "gradient_descent",
+          "learning_rate": 0.005,
+          "input_dim": 784
+        }
+      }
+    },
+    "inputs": {
+      "default": {
+        "description": ""
+      }
+    },
+    "outputs": {
+      "default": {
+        "description": ""
+      }
+    },
+    "commands": {}
+  }
+}

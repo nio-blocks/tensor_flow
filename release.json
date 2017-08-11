@@ -1,0 +1,12 @@
+{
+  "nio/MNISTImageLoader": {
+    "language": "Python",
+    "reference": "https://github.com/tyoungNIO/tensor_flow.git@v0.1.0",
+    "version": "0.1.0"
+  },
+  "nio/NeuralNetwork": {
+    "language": "Python",
+    "reference": "https://github.com/tyoungNIO/tensor_flow.git@v0.2.0",
+    "version": "0.2.0"
+  }
+}

@@ -1,6 +1,6 @@
 TensorFlow
 ===========
-Collection of blocks to implement TensorFlow in n.io services.
+Collection of blocks to implement TensorFlow in nio services.
 
 Dependencies:
 ----------------
@@ -9,7 +9,7 @@ Dependencies:
 
 NeuralNetwork
 ===========
-Hard-coded 784-10 softmax network, executes one training step per input signal.
+This is a general purpose user-configurable neural network, assuming flattened inputs. Executes one training step per input signal.
 
 Properties:
 --------------
@@ -22,7 +22,7 @@ None
 Input:
 -------
 `{'batch': (ndarray(<images>), ndarray(<labels>))}`
-* `input_id` (kwarg): Possible values `train`... coming soon `test`!
+* `input_id` (kwarg): Possible values: `train`, `test`, `predict`
 
 Output:
 ---------
