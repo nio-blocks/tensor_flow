@@ -10,16 +10,16 @@ import tensorflow as tf
 class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
 
     block_config = {}
+    input_signal = {'batch': MagicMock(), 'labels': MagicMock()}
 
     @patch('tensorflow.Session')
     def test_process_train_signals(self, mock_sess):
         """Signals processed by 'train' input execute one training iteration"""
         mock_sess.return_value.run.return_value = [MagicMock()] * 3
-        input_signal = {'batch': MagicMock(), 'labels': MagicMock()}
         blk = NeuralNetwork()
         self.configure_block(blk, self.block_config)
         blk.start()
-        blk.process_signals([Signal(input_signal)], input_id='train')
+        blk.process_signals([Signal(self.input_signal)], input_id='train')
         blk.stop()
         self.assertEqual(mock_sess.call_count, 1)
         # sess.run() is called in start() and process_signals()
@@ -34,11 +34,10 @@ class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
     def test_process_test_signals(self, mock_sess):
         """Signals processed by 'test' return accuracy and loss"""
         mock_sess.return_value.run.return_value = [MagicMock()] * 2
-        input_signal = {'batch': MagicMock(), 'labels': MagicMock()}
         blk = NeuralNetwork()
         self.configure_block(blk, self.block_config)
         blk.start()
-        blk.process_signals([Signal(input_signal)], input_id='test')
+        blk.process_signals([Signal(self.input_signal)], input_id='test')
         blk.stop()
         self.assertEqual(mock_sess.call_count, 1)
         # sess.run() is called in start() and process_signals()
@@ -53,11 +52,10 @@ class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
     def test_process_predict_signals(self, mock_sess):
         """Signals processed by 'predict' return classification"""
         mock_sess.return_value.run.return_value = [MagicMock()] * 2
-        input_signal = {'batch': MagicMock(), 'labels': MagicMock()}
         blk = NeuralNetwork()
         self.configure_block(blk, self.block_config)
         blk.start()
-        blk.process_signals([Signal(input_signal)], input_id='predict')
+        blk.process_signals([Signal(self.input_signal)], input_id='predict')
         blk.stop()
         self.assertEqual(mock_sess.call_count, 1)
         # sess.run() is called in start() and process_signals()
@@ -177,3 +175,24 @@ class TestNeuralNetworkBlockMultiLayer(TestNeuralNetworkBlock):
 
         self.assertEqual(len(blk.layers()),
                          self._get_number_of_layers(blk.sess))
+
+
+class TestSignalLists(NIOBlockTestCase):
+
+    block_config = {}
+    input_signal = {'batch': MagicMock(), 'labels': MagicMock()}
+
+    def signals_notified(self, block, signals, output_id):
+        """Override so that last_notified is list of signal lists"""
+        self.last_notified[output_id].append(signals)
+
+    @patch('tensorflow.Session')
+    def test_process_signals(self, mock_sess):
+        """Notified signal list is equal length to input"""
+        mock_sess.return_value.run.return_value = [MagicMock()] * 3
+        blk = NeuralNetwork()
+        self.configure_block(blk, self.block_config)
+        blk.start()
+        blk.process_signals([Signal(self.input_signal)] * 2, input_id='train')
+        blk.stop()
+        self.assert_num_signals_notified(1)
