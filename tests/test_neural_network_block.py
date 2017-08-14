@@ -128,13 +128,13 @@ class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
         self.assert_num_signals_notified(3)
 
         self.assertDictEqual(
-            {'loss': train_loss, 'accuracy': train_acc, 'input_id': 'train'},
+            self.output_dict('train'),
             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
         self.assertDictEqual(
-            {'loss': test_loss, 'accuracy': test_acc, 'input_id': 'test'},
+            self.output_dict('test'),
             self.last_notified[DEFAULT_TERMINAL][1].to_dict())
         self.assertDictEqual(
-            {'prediction': prediction, 'input_id': 'predict'},
+            self.output_dict('predict'),
             self.last_notified[DEFAULT_TERMINAL][2].to_dict())
 
 
