@@ -18,16 +18,16 @@ class LossFunctions(Enum):
 
 
 class Optimizers(Enum):
-    gradient_descent = 'GradientDescentOptimizer'
-    proximal_gradient_descent = 'ProximalGradientDescentOptimizer'
-    adadelta = 'AdadeltaOptimizer'
-    adagrad = 'AdagradOptimizer'
-    proximal_adagrad = 'ProximalAdagradOptimizer'
-    adagradDA = 'AdagradDAOptimizer'
-    momentum = 'MomentumOptimizer'
-    adam = 'AdamOptimizer'
-    ftrl = 'FtrlOptimizer'
-    rms_prop = 'RMSPropOptimizer'
+    GradientDescentOptimizer = 'GradientDescentOptimizer'
+    ProximalGradientDescentOptimizer = 'ProximalGradientDescentOptimizer'
+    AdadeltaOptimizer = 'AdadeltaOptimizer'
+    AdagradOptimizer = 'AdagradOptimizer'
+    ProximalAdagradOptimizer = 'ProximalAdagradOptimizer'
+    AdagradDAOptimizer = 'AdagradDAOptimizer'
+    MomentumOptimizer = 'MomentumOptimizer'
+    AdamOptimizer = 'AdamOptimizer'
+    FtrlOptimizer = 'FtrlOptimizer'
+    RMSPropOptimizer = 'RMSPropOptimizer'
 
 
 class ActivationFunctions(Enum):
@@ -71,7 +71,7 @@ class NetworkConfig(PropertyHolder):
                           default=LossFunctions.cross_entropy)
     optimizer = SelectProperty(Optimizers,
                                title="Optimizer",
-                               default=Optimizers.gradient_descent)
+                               default=Optimizers.GradientDescentOptimizer)
     dropout = FloatProperty(title='Dropout Percentage During Training',
                             default=0)
     random_seed = IntProperty(title="Random seed", default=0, visible=False)
