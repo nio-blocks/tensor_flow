@@ -23,7 +23,7 @@ Properties:
 * `layers`
   * `count` (int) Number of neurons in the layer
   * `activation` (select) Activation function of the layer, [Activation Functions](https://www.tensorflow.org/api_guides/python/nn#Activation_Functions)
-  * initial_weights` (select) All weights (including bias) of this layer will be initialized with this value
+  * `initial_weights` (select) All weights (including bias) of this layer will be initialized with this value
   * `bias` (bool) Add bias unit to layer
 
 Commands:
