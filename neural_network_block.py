@@ -179,21 +179,23 @@ class NeuralNetwork(Block):
         self.sess.run(tf.global_variables_initializer())
 
     def process_signals(self, signals, input_id=None):
+        new_signals = []
         for signal in signals:
             if input_id == 'train':
                 acc, loss = self._train(signal)[1:]
-                self.notify_signals([Signal({'input_id': input_id,
-                                             'accuracy': acc, 
-                                             'loss': loss})])
+                new_signals.append(Signal({'input_id': input_id,
+                                           'accuracy': acc, 
+                                           'loss': loss}))
             elif input_id == 'test':
                 acc, loss = self._test(signal)
-                self.notify_signals([Signal({'input_id': input_id,
-                                             'accuracy': acc,
-                                             'loss': loss})])
+                new_signals.append(Signal({'input_id': input_id,
+                                           'accuracy': acc,
+                                           'loss': loss}))
             else:
                 predict = self._predict(signal)
-                self.notify_signals([Signal({'input_id': input_id,
-                                             'prediction': predict})])
+                new_signals.append(Signal({'input_id': input_id,
+                                           'prediction': predict}))
+        self.notify_signals(new_signals)
 
     def stop(self):
         # todo: use context manager and remove this
