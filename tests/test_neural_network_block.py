@@ -10,7 +10,7 @@ import tensorflow as tf
 class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
 
     block_config = {}
-    input_signal = {'batch': MagicMock(), 'labels': MagicMock()}
+    input_signals = [Signal({'batch': MagicMock(), 'labels': MagicMock()})]
 
     @patch('tensorflow.Session')
     def test_process_train_signals(self, mock_sess):
@@ -19,7 +19,7 @@ class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
         blk = NeuralNetwork()
         self.configure_block(blk, self.block_config)
         blk.start()
-        blk.process_signals([Signal(self.input_signal)], input_id='train')
+        blk.process_signals(self.input_signals, input_id='train')
         blk.stop()
         self.assertEqual(mock_sess.call_count, 1)
         # sess.run() is called in start() and process_signals()
@@ -37,7 +37,7 @@ class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
         blk = NeuralNetwork()
         self.configure_block(blk, self.block_config)
         blk.start()
-        blk.process_signals([Signal(self.input_signal)], input_id='test')
+        blk.process_signals(self.input_signals, input_id='test')
         blk.stop()
         self.assertEqual(mock_sess.call_count, 1)
         # sess.run() is called in start() and process_signals()
@@ -55,7 +55,7 @@ class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
         blk = NeuralNetwork()
         self.configure_block(blk, self.block_config)
         blk.start()
-        blk.process_signals([Signal(self.input_signal)], input_id='predict')
+        blk.process_signals(self.input_signals, input_id='predict')
         blk.stop()
         self.assertEqual(mock_sess.call_count, 1)
         # sess.run() is called in start() and process_signals()
@@ -180,7 +180,7 @@ class TestNeuralNetworkBlockMultiLayer(TestNeuralNetworkBlock):
 class TestSignalLists(NIOBlockTestCase):
 
     block_config = {}
-    input_signal = {'batch': MagicMock(), 'labels': MagicMock()}
+    input_signals = [Signal({'batch': MagicMock(), 'labels': MagicMock()})] * 2
 
     def signals_notified(self, block, signals, output_id):
         """Override so that last_notified is list of signal lists"""
@@ -193,6 +193,6 @@ class TestSignalLists(NIOBlockTestCase):
         blk = NeuralNetwork()
         self.configure_block(blk, self.block_config)
         blk.start()
-        blk.process_signals([Signal(self.input_signal)] * 2, input_id='train')
+        blk.process_signals(self.input_signals, input_id='train')
         blk.stop()
-        self.assert_num_signals_notified(1)
+        self.assertEqual(len(self.last_notified[DEFAULT_TERMINAL]), 1)
