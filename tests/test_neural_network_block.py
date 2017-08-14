@@ -12,15 +12,23 @@ class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
     block_config = {}
     input_signals = [Signal({'batch': MagicMock(), 'labels': MagicMock()})]
 
+    def output_dict(self, input_id):
+        sig = {'loss': ANY if input_id != 'predict' else None,
+               'accuracy': ANY if input_id != 'predict' else None,
+               'prediction': ANY if input_id == 'predict' else None,
+               'input_id': input_id}
+        return sig
+
     @patch('tensorflow.Session')
     def test_process_train_signals(self, mock_sess):
         """Signals processed by 'train' input execute one training iteration"""
+        input_id='train'
         # run() returns 3 values
         mock_sess.return_value.run.return_value = [MagicMock()] * 3
         blk = NeuralNetwork()
         self.configure_block(blk, self.block_config)
         blk.start()
-        blk.process_signals(self.input_signals, input_id='train')
+        blk.process_signals(self.input_signals, input_id)
         blk.stop()
         self.assertEqual(mock_sess.call_count, 1)
         # sess.run() is called in start() and process_signals()
@@ -28,18 +36,19 @@ class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
         self.assertEqual(mock_sess.return_value.close.call_count, 1)
         self.assert_num_signals_notified(1)
         self.assertDictEqual(
-            {'loss': ANY, 'accuracy': ANY, 'input_id': 'train'},
+            self.output_dict(input_id),
             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
 
     @patch('tensorflow.Session')
     def test_process_test_signals(self, mock_sess):
         """Signals processed by 'test' return accuracy and loss"""
+        input_id='test'
         # run() returns 2 values
         mock_sess.return_value.run.return_value = [MagicMock()] * 2
         blk = NeuralNetwork()
         self.configure_block(blk, self.block_config)
         blk.start()
-        blk.process_signals(self.input_signals, input_id='test')
+        blk.process_signals(self.input_signals, input_id)
         blk.stop()
         self.assertEqual(mock_sess.call_count, 1)
         # sess.run() is called in start() and process_signals()
@@ -47,16 +56,17 @@ class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
         self.assertEqual(mock_sess.return_value.close.call_count, 1)
         self.assert_num_signals_notified(1)
         self.assertDictEqual(
-            {'loss': ANY, 'accuracy': ANY, 'input_id': 'test'},
+            self.output_dict(input_id),
             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
 
     @patch('tensorflow.Session')
     def test_process_predict_signals(self, mock_sess):
         """Signals processed by 'predict' return classification"""
+        input_id='predict'
         blk = NeuralNetwork()
         self.configure_block(blk, self.block_config)
         blk.start()
-        blk.process_signals(self.input_signals, input_id='predict')
+        blk.process_signals(self.input_signals, input_id)
         blk.stop()
         self.assertEqual(mock_sess.call_count, 1)
         # sess.run() is called in start() and process_signals()
@@ -64,7 +74,7 @@ class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
         self.assertEqual(mock_sess.return_value.close.call_count, 1)
         self.assert_num_signals_notified(1)
         self.assertDictEqual(
-            {'prediction': ANY, 'input_id': 'predict'},
+            self.output_dict(input_id),
             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
 
     @patch('tensorflow.Session')
@@ -119,13 +129,13 @@ class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
         self.assert_num_signals_notified(3)
 
         self.assertDictEqual(
-            {'loss': train_loss, 'accuracy': train_acc, 'input_id': 'train'},
+            self.output_dict('train'),
             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
         self.assertDictEqual(
-            {'loss': test_loss, 'accuracy': test_acc, 'input_id': 'test'},
+            self.output_dict('test'),
             self.last_notified[DEFAULT_TERMINAL][1].to_dict())
         self.assertDictEqual(
-            {'prediction': prediction, 'input_id': 'predict'},
+            self.output_dict('predict'),
             self.last_notified[DEFAULT_TERMINAL][2].to_dict())
 
 

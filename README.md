@@ -41,15 +41,12 @@ Signal Attributes:
 
 Output:
 ---------
-A list of signals of equal length to input signals.  
+A list of signals of equal length to input signals. Attribute values will be `None` if not applicable to the operation named by `input_id`
 
 * `accuracy` (float) Percentage of batch correctly identified
 * `loss` (float) Result of loss function `network_config.loss`
-* `input_id` (str)
-
-If `input_id` is `predict`, `loss` and `accuracy` will be replaced by:
-
 * `prediction` (array) Network output with shape (*n*, `layers[-1].count`), where *n* is `batch_size`
+* `input_id` (str)
 
 MNISTImageLoader
 ===========

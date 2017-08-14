@@ -185,15 +185,19 @@ class NeuralNetwork(Block):
                 acc, loss = self._train(signal)[1:]
                 new_signals.append(Signal({'input_id': input_id,
                                            'accuracy': acc, 
-                                           'loss': loss}))
+                                           'loss': loss,
+                                           'prediction': None}))
             elif input_id == 'test':
                 acc, loss = self._test(signal)
                 new_signals.append(Signal({'input_id': input_id,
                                            'accuracy': acc,
-                                           'loss': loss}))
+                                           'loss': loss,
+                                           'prediction': None}))
             else:
                 predict = self._predict(signal)
                 new_signals.append(Signal({'input_id': input_id,
+                                           'accuracy': None,
+                                           'loss': None,
                                            'prediction': predict}))
         self.notify_signals(new_signals)
 
