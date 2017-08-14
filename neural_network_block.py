@@ -173,7 +173,7 @@ class NeuralNetwork(Block):
                                            tf.argmax(self.Y_, 1))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction,
                                        tf.float32))
-        self.prediction = (tf.argmax(Y, 1), Y)
+        self.prediction = Y
 
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())

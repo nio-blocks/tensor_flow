@@ -51,7 +51,7 @@ class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
     @patch('tensorflow.Session')
     def test_process_predict_signals(self, mock_sess):
         """Signals processed by 'predict' return classification"""
-        mock_sess.return_value.run.return_value = [MagicMock()] * 2
+        mock_sess.return_value.run.return_value = MagicMock()
         blk = NeuralNetwork()
         self.configure_block(blk, self.block_config)
         blk.start()
