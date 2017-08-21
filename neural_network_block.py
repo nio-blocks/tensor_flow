@@ -158,11 +158,7 @@ class NeuralNetwork(Block):
         output_layer_num = len(self.layers()) - 1
         Y = layers_logits['layer{}'.format(output_layer_num)]
         Y_logits = layers_logits['layer{}_logits'.format(output_layer_num)]
-
-        self.correct_prediction = tf.equal(tf.argmax(Y, 1),
-                                           tf.argmax(self.Y_, 1))
-        self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction,
-                                       tf.float32))
+        self.accuracy = 1 - tf.reduce_mean(abs(self.Y_ - Y))
         if self.network_config().loss().value == 'cross_entropy':
             self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y))
         if self.network_config().loss().value == \
@@ -172,7 +168,6 @@ class NeuralNetwork(Block):
                                                         labels=self.Y_))
         if self.network_config().loss().value == 'mean_absolute_error':
             self.loss_function = tf.reduce_mean(abs(self.Y_ - Y))
-            self.accuracy = 1 - self.loss_function
         self.train_step = \
             getattr(tf.train, self.network_config().optimizer().value) \
             (self.network_config().learning_rate()).minimize(
