@@ -172,7 +172,7 @@ class NeuralNetwork(Block):
                                                         labels=self.Y_))
         if self.network_config().loss().value == 'mean_absolute_error':
             self.loss_function = tf.reduce_mean(abs(self.Y_ - Y))
-            self.accuracy = self.loss_function
+            self.accuracy = 1 - self.loss_function
         self.train_step = \
             getattr(tf.train, self.network_config().optimizer().value) \
             (self.network_config().learning_rate()).minimize(
