@@ -15,6 +15,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # supress TF build warnings
 class LossFunctions(Enum):
     cross_entropy = 'cross_entropy'
     softmax_cross_entropy_with_logits = 'softmax_cross_entropy_with_logits'
+    mean_absolute_error = 'mean_absolute_error'
 
 
 class Optimizers(Enum):
@@ -158,6 +159,10 @@ class NeuralNetwork(Block):
         Y = layers_logits['layer{}'.format(output_layer_num)]
         Y_logits = layers_logits['layer{}_logits'.format(output_layer_num)]
 
+        self.correct_prediction = tf.equal(tf.argmax(Y, 1),
+                                           tf.argmax(self.Y_, 1))
+        self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction,
+                                       tf.float32))
         if self.network_config().loss().value == 'cross_entropy':
             self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y))
         if self.network_config().loss().value == \
@@ -165,16 +170,14 @@ class NeuralNetwork(Block):
             self.loss_function = tf.reduce_mean(
                 tf.nn.softmax_cross_entropy_with_logits(logits=Y_logits,
                                                         labels=self.Y_))
+        if self.network_config().loss().value == 'mean_absolute_error':
+            self.loss_function = tf.reduce_mean(abs(self.Y_ - Y))
+            self.accuracy = self.loss_function
         self.train_step = \
             getattr(tf.train, self.network_config().optimizer().value) \
             (self.network_config().learning_rate()).minimize(
                 self.loss_function)
-        self.correct_prediction = tf.equal(tf.argmax(Y, 1),
-                                           tf.argmax(self.Y_, 1))
-        self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction,
-                                       tf.float32))
         self.prediction = Y
-
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())
 
