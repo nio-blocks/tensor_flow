@@ -182,28 +182,25 @@ class NeuralNetwork(EnrichSignals, Block):
         for signal in signals:
             if input_id == 'train':
                 acc, loss = self._train(signal)[1:]
-                new_signals.append(self.get_output_signal(
-                    {'input_id': input_id,
-                     'accuracy': acc,
-                     'loss': loss,
-                     'prediction': None},
-                     signal))
+                output = {'input_id': input_id,
+                          'accuracy': acc,
+                          'loss': loss,
+                          'prediction': None}
+                new_signals.append(self.get_output_signal(output, signal))
             elif input_id == 'test':
                 acc, loss = self._test(signal)
-                new_signals.append(self.get_output_signal(
-                    {'input_id': input_id,
-                     'accuracy': acc,
-                     'loss': loss,
-                     'prediction': None},
-                     signal))
+                output = {'input_id': input_id,
+                          'accuracy': acc,
+                          'loss': loss,
+                          'prediction': None}
+                new_signals.append(self.get_output_signal(output, signal))
             else:
                 predict = self._predict(signal)
-                new_signals.append(self.get_output_signal(
-                    {'input_id': input_id,
-                     'accuracy': None,
-                     'loss': None,
-                     'prediction': predict},
-                     signal))
+                output = {'input_id': input_id,
+                          'accuracy': None,
+                          'loss': None,
+                          'prediction': predict}
+                new_signals.append(self.get_output_signal(output, signal))
         self.notify_signals(new_signals)
 
     def stop(self):
