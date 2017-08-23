@@ -16,19 +16,20 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # supress TF build warnings
 class LossFunctions(Enum):
     cross_entropy = 'cross_entropy'
     softmax_cross_entropy_with_logits = 'softmax_cross_entropy_with_logits'
+    mean_absolute_error = 'mean_absolute_error'
 
 
 class Optimizers(Enum):
-    gradient_descent = 'GradientDescentOptimizer'
-    proximal_gradient_descent = 'ProximalGradientDescentOptimizer'
-    adadelta = 'AdadeltaOptimizer'
-    adagrad = 'AdagradOptimizer'
-    proximal_adagrad = 'ProximalAdagradOptimizer'
-    adagradDA = 'AdagradDAOptimizer'
-    momentum = 'MomentumOptimizer'
-    adam = 'AdamOptimizer'
-    ftrl = 'FtrlOptimizer'
-    rms_prop = 'RMSPropOptimizer'
+    GradientDescentOptimizer = 'GradientDescentOptimizer'
+    ProximalGradientDescentOptimizer = 'ProximalGradientDescentOptimizer'
+    AdadeltaOptimizer = 'AdadeltaOptimizer'
+    AdagradOptimizer = 'AdagradOptimizer'
+    ProximalAdagradOptimizer = 'ProximalAdagradOptimizer'
+    AdagradDAOptimizer = 'AdagradDAOptimizer'
+    MomentumOptimizer = 'MomentumOptimizer'
+    AdamOptimizer = 'AdamOptimizer'
+    FtrlOptimizer = 'FtrlOptimizer'
+    RMSPropOptimizer = 'RMSPropOptimizer'
 
 
 class ActivationFunctions(Enum):
@@ -72,7 +73,7 @@ class NetworkConfig(PropertyHolder):
                           default=LossFunctions.cross_entropy)
     optimizer = SelectProperty(Optimizers,
                                title="Optimizer",
-                               default=Optimizers.gradient_descent)
+                               default=Optimizers.GradientDescentOptimizer)
     dropout = FloatProperty(title='Dropout Percentage During Training',
                             default=0)
     random_seed = IntProperty(title="Random seed", default=0, visible=False)
@@ -92,7 +93,7 @@ class NeuralNetwork(EnrichSignals, Block):
     network_config = ObjectProperty(NetworkConfig,
                                     title='ANN Configuration',
                                     defaul=NetworkConfig())
-    version = VersionProperty('0.2.0')
+    version = VersionProperty('0.3.0')
 
     def __init__(self):
         super().__init__()
@@ -158,7 +159,7 @@ class NeuralNetwork(EnrichSignals, Block):
         output_layer_num = len(self.layers()) - 1
         Y = layers_logits['layer{}'.format(output_layer_num)]
         Y_logits = layers_logits['layer{}_logits'.format(output_layer_num)]
-
+        self.accuracy = 1 - tf.reduce_mean(abs(self.Y_ - Y))
         if self.network_config().loss().value == 'cross_entropy':
             self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y))
         if self.network_config().loss().value == \
@@ -166,16 +167,13 @@ class NeuralNetwork(EnrichSignals, Block):
             self.loss_function = tf.reduce_mean(
                 tf.nn.softmax_cross_entropy_with_logits(logits=Y_logits,
                                                         labels=self.Y_))
+        if self.network_config().loss().value == 'mean_absolute_error':
+            self.loss_function = tf.reduce_mean(abs(self.Y_ - Y))
         self.train_step = \
             getattr(tf.train, self.network_config().optimizer().value) \
             (self.network_config().learning_rate()).minimize(
                 self.loss_function)
-        self.correct_prediction = tf.equal(tf.argmax(Y, 1),
-                                           tf.argmax(self.Y_, 1))
-        self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction,
-                                       tf.float32))
         self.prediction = Y
-
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())
 

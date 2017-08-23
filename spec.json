@@ -1,30 +1,33 @@
 {
   "nio/MNISTImageLoader": {
     "version": "0.1.0",
-    "description": "",
+    "description": "Each signal processed loads the next `batch_size` images from the dataset corresponding to `input_id`. Output is a rank-two tensor with shape (`batch_size`, 784), ready to be used by a NeuralNetwork block.",
     "properties": {
       "batch_size": {
         "title": "Images per Batch",
         "type": "IntType",
-        "description": "",
+        "description": "Number of images and labels per batch",
         "default": 100
       },
       "shuffle": {
         "title": "Shuffle Batch",
         "type": "BoolType",
-        "description": "",
+        "description": "Randomize the order of each batch",
         "default": true
       },
       "validation_size": {
         "title": "Validation Size",
         "type": "IntType",
-        "description": "",
+        "description": "Number of images and labels to reserve from training data for cross-validation.",
         "default": 0
       }
     },
     "inputs": {
-      "default": {
-        "description": ""
+      "train": {
+        "description": "Load `batch_size` images from training dataset"
+      },
+      "test": {
+        "description": "Load `batch_size` images from testing dataset"
       }
     },
     "outputs": {
@@ -35,18 +38,27 @@
     "commands": {}
   },
   "nio/NeuralNetwork": {
-    "version": "0.2.0",
-    "description": "",
+    "version": "0.3.0",
+    "description": "Accepts rank-two input tensors, each is fed-forward through a configured aritifial neural network, which predicts values for each of its outputs. Training and testing data will be compared to their empirical labels and evaluated for accuracy and loss, as defined by the user. During training weights are updated through back-propogration, according to the optimizer selected.",
     "properties": {
+      "enrich": {
+        "title": "Signal Enrichment",
+        "type": "ObjectType",
+        "description": "",
+        "default": {
+          "enrich_field": "",
+          "exclude_existing": true
+        }
+      },
       "layers": {
         "title": "Network Layers",
         "type": "ListType",
-        "description": "Adds a layer with given number of neurons, whether to add a bias value, the activation function, and initial configured weights.",
+        "description": "Define one or more network layers with the specified number of neurons, a bias unit if selected, an activation function, and initial weight values. Each layer's input is the layer before it (or input data, in the case of the first layer).",
         "default": [
           {
+            "activation": "softmax",
             "bias": true,
             "count": 10,
-            "activation": "softmax",
             "initial_weights": "random"
           }
         ]
@@ -54,20 +66,26 @@
       "network_config": {
         "title": "ANN Configuration",
         "type": "ObjectType",
-        "description": "",
+        "description": "Parameters of the artifical neural network. Dropout is only used if one or more dropout layers are configured in the network.",
         "default": {
-          "random_seed": 0,
-          "dropout": 0,
-          "loss": "cross_entropy",
-          "optimizer": "gradient_descent",
           "learning_rate": 0.005,
+          "optimizer": "GradientDescentOptimizer",
+          "random_seed": 0,
+          "loss": "cross_entropy",
+          "dropout": 0,
           "input_dim": 784
         }
       }
     },
     "inputs": {
-      "default": {
-        "description": ""
+      "test": {
+        "description": "Compare predictions for input tensor to labels, return accuracy and loss."
+      },
+      "train": {
+        "description": "Compare predictions for input tensor to labels, return accuracy and loss, and optimze weights."
+      },
+      "predict": {
+        "description": "Create new predictions for un-labeled input tensor."
       }
     },
     "outputs": {
