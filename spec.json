@@ -23,7 +23,10 @@
       }
     },
     "inputs": {
-      "default": {
+      "train": {
+        "description": ""
+      },
+      "test": {
         "description": ""
       }
     },
@@ -35,18 +38,27 @@
     "commands": {}
   },
   "nio/NeuralNetwork": {
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "",
     "properties": {
+      "enrich": {
+        "title": "Signal Enrichment",
+        "type": "ObjectType",
+        "description": "",
+        "default": {
+          "enrich_field": "",
+          "exclude_existing": true
+        }
+      },
       "layers": {
         "title": "Network Layers",
         "type": "ListType",
-        "description": "Adds a layer with given number of neurons, whether to add a bias value, the activation function, and initial configured weights.",
+        "description": "",
         "default": [
           {
+            "activation": "softmax",
             "bias": true,
             "count": 10,
-            "activation": "softmax",
             "initial_weights": "random"
           }
         ]
@@ -56,17 +68,23 @@
         "type": "ObjectType",
         "description": "",
         "default": {
-          "random_seed": 0,
-          "dropout": 0,
-          "loss": "cross_entropy",
-          "optimizer": "gradient_descent",
           "learning_rate": 0.005,
+          "optimizer": "GradientDescentOptimizer",
+          "random_seed": 0,
+          "loss": "cross_entropy",
+          "dropout": 0,
           "input_dim": 784
         }
       }
     },
     "inputs": {
-      "default": {
+      "test": {
+        "description": ""
+      },
+      "train": {
+        "description": ""
+      },
+      "predict": {
         "description": ""
       }
     },
