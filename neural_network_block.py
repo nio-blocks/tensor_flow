@@ -3,6 +3,7 @@ from enum import Enum
 
 from nio.block.base import Block
 from nio.block.terminals import input
+from nio.block.mixins.enrich.enrich_signals import EnrichSignals
 from nio.properties import VersionProperty, Property, FloatProperty, \
                            PropertyHolder, IntProperty, SelectProperty, \
                            ListProperty, BoolProperty, ObjectProperty
@@ -80,7 +81,7 @@ class NetworkConfig(PropertyHolder):
 @input('predict')
 @input('test')
 @input('train')
-class NeuralNetwork(Block):
+class NeuralNetwork(EnrichSignals, Block):
 
     layers = ListProperty(Layers,
                           title='Network Layers',
@@ -183,22 +184,28 @@ class NeuralNetwork(Block):
         for signal in signals:
             if input_id == 'train':
                 acc, loss = self._train(signal)[1:]
-                new_signals.append(Signal({'input_id': input_id,
-                                           'accuracy': acc, 
-                                           'loss': loss,
-                                           'prediction': None}))
+                new_signals.append(self.get_output_signal(
+                    {'input_id': input_id,
+                     'accuracy': acc,
+                     'loss': loss,
+                     'prediction': None},
+                     signal))
             elif input_id == 'test':
                 acc, loss = self._test(signal)
-                new_signals.append(Signal({'input_id': input_id,
-                                           'accuracy': acc,
-                                           'loss': loss,
-                                           'prediction': None}))
+                new_signals.append(self.get_output_signal(
+                    {'input_id': input_id,
+                     'accuracy': acc,
+                     'loss': loss,
+                     'prediction': None},
+                     signal))
             else:
                 predict = self._predict(signal)
-                new_signals.append(Signal({'input_id': input_id,
-                                           'accuracy': None,
-                                           'loss': None,
-                                           'prediction': predict}))
+                new_signals.append(self.get_output_signal(
+                    {'input_id': input_id,
+                     'accuracy': None,
+                     'loss': None,
+                     'prediction': predict},
+                     signal))
         self.notify_signals(new_signals)
 
     def stop(self):

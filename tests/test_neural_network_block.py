@@ -207,3 +207,28 @@ class TestSignalLists(NIOBlockTestCase):
         blk.process_signals(self.input_signals, input_id='train')
         blk.stop()
         self.assertEqual(len(self.last_notified[DEFAULT_TERMINAL]), 1)
+
+
+class TestSignalEnrichment(NIOBlockTestCase):
+
+    block_config = {'enrich': {'exclude_existing': False}}
+    input_signals = [Signal({'batch': MagicMock(), 'labels': MagicMock()})]
+    output_dict = {'batch': input_signals[0].batch,
+                   'labels': input_signals[0].labels,
+                   'accuracy': ANY,
+                   'loss': ANY,
+                   'prediction': None,
+                   'input_id': 'train'}
+
+    @patch('tensorflow.Session')
+    def test_enrich_mixin(self, mock_sess):
+        mock_sess.return_value.run.return_value = [MagicMock()] * 3
+        blk = NeuralNetwork()
+        self.configure_block(blk, self.block_config)
+        blk.start()
+        blk.process_signals(self.input_signals, input_id='train')
+        blk.stop()
+        self.assert_num_signals_notified(1)
+        self.assertDictEqual(
+            self.output_dict,
+            self.last_notified[DEFAULT_TERMINAL][0].to_dict())
