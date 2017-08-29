@@ -181,18 +181,18 @@ class NeuralNetwork(EnrichSignals, Block):
         new_signals = []
         for signal in signals:
             if input_id == 'train':
-                acc, loss = self._train(signal)[1:]
+                acc, loss, predict = self._train(signal)[1:]
                 output = {'input_id': input_id,
                           'accuracy': acc,
                           'loss': loss,
-                          'prediction': None}
+                          'prediction': predict}
                 new_signals.append(self.get_output_signal(output, signal))
             elif input_id == 'test':
-                acc, loss = self._test(signal)
+                acc, loss, predict = self._test(signal)
                 output = {'input_id': input_id,
                           'accuracy': acc,
                           'loss': loss,
-                          'prediction': None}
+                          'prediction': predict}
                 new_signals.append(self.get_output_signal(output, signal))
             else:
                 predict = self._predict(signal)
@@ -212,7 +212,7 @@ class NeuralNetwork(EnrichSignals, Block):
         batch_X = signal.batch
         batch_Y_ = signal.labels
         return self.sess.run(
-            [self.train_step, self.accuracy, self.loss_function],
+            [self.train_step, self.accuracy, self.loss_function, self.prediction],
             feed_dict={self.X: batch_X,
                        self.Y_: batch_Y_,
                        self.prob_keep: 1 - self.network_config().dropout()})
@@ -221,7 +221,7 @@ class NeuralNetwork(EnrichSignals, Block):
         batch_X = signal.batch
         batch_Y_ = signal.labels
         return self.sess.run(
-            [self.accuracy, self.loss_function],
+            [self.accuracy, self.loss_function, self.prediction],
             feed_dict={self.X: batch_X,
                        self.Y_: batch_Y_,
                        self.prob_keep: 1})
