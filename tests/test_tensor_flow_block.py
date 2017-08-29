@@ -17,7 +17,7 @@ class TestTensorFlowBlock(NIOBlockTestCase, tf.test.TestCase):
     def output_dict(self, input_id):
         sig = {'loss': ANY if input_id != 'predict' else None,
                'accuracy': ANY if input_id != 'predict' else None,
-               'prediction': ANY if input_id == 'predict' else None,
+               'prediction': ANY,
                'input_id': input_id}
         return sig
 
@@ -218,7 +218,7 @@ class TestSignalEnrichment(NIOBlockTestCase):
                    'labels': input_signals[0].labels,
                    'accuracy': ANY,
                    'loss': ANY,
-                   'prediction': None,
+                   'prediction': ANY,
                    'input_id': 'train'}
 
     @patch('tensorflow.Session')
