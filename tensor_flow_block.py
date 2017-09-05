@@ -82,7 +82,7 @@ class NetworkConfig(PropertyHolder):
 @input('predict')
 @input('test')
 @input('train')
-class NeuralNetwork(EnrichSignals, Block):
+class TensorFlow(EnrichSignals, Block):
 
     layers = ListProperty(Layers,
                           title='Network Layers',
