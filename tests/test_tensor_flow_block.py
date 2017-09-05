@@ -206,7 +206,6 @@ class TestSignalLists(NIOBlockTestCase):
         blk.start()
         blk.process_signals(self.input_signals, input_id='train')
         blk.stop()
-        #self.assertEqual(len(self.last_notified[DEFAULT_TERMINAL]), 1)
 
 
 class TestSignalEnrichment(NIOBlockTestCase):
