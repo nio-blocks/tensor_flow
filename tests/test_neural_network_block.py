@@ -23,8 +23,8 @@ class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
     def test_process_train_signals(self, mock_sess):
         """Signals processed by 'train' input execute one training iteration"""
         input_id='train'
-        # run() returns 3 values
-        mock_sess.return_value.run.return_value = [MagicMock()] * 3
+        # run() returns 4 values
+        mock_sess.return_value.run.return_value = [MagicMock()] * 4
         blk = NeuralNetwork()
         self.configure_block(blk, self.block_config)
         blk.start()
@@ -43,8 +43,8 @@ class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
     def test_process_test_signals(self, mock_sess):
         """Signals processed by 'test' return accuracy and loss"""
         input_id='test'
-        # run() returns 2 values
-        mock_sess.return_value.run.return_value = [MagicMock()] * 2
+        # run() returns 4 values
+        mock_sess.return_value.run.return_value = [MagicMock()] * 3
         blk = NeuralNetwork()
         self.configure_block(blk, self.block_config)
         blk.start()
@@ -85,13 +85,15 @@ class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
         train_mock = MagicMock()
         train_acc = 0
         train_loss = 0
-        # mock list slicing to correctly return acc, loss
-        train_mock.__getitem__.return_value = [train_acc, train_loss]
+        prediction = 0
+        # mock list slicing to correctly return acc, loss, prediction
+        train_mock.__getitem__.return_value = [train_acc, train_loss, prediction]
 
         test_mock = MagicMock()
         test_acc = 0
         test_loss = 0
-        test_mock.return_value = [test_acc, test_loss]
+        prediction = 0
+        test_mock.return_value = [test_acc, test_loss, prediction]
 
         predict_mock = MagicMock()
         prediction = 0
@@ -200,7 +202,7 @@ class TestSignalLists(NIOBlockTestCase):
     @patch('tensorflow.Session')
     def test_process_signals(self, mock_sess):
         """Notified signal list is equal length to input"""
-        mock_sess.return_value.run.return_value = [MagicMock()] * 3
+        mock_sess.return_value.run.return_value = [MagicMock()] * 4
         blk = NeuralNetwork()
         self.configure_block(blk, self.block_config)
         blk.start()
@@ -222,7 +224,7 @@ class TestSignalEnrichment(NIOBlockTestCase):
 
     @patch('tensorflow.Session')
     def test_enrich_mixin(self, mock_sess):
-        mock_sess.return_value.run.return_value = [MagicMock()] * 3
+        mock_sess.return_value.run.return_value = [MagicMock()] * 4
         blk = NeuralNetwork()
         self.configure_block(blk, self.block_config)
         blk.start()
