@@ -1,7 +1,7 @@
 {
   "nio/MNISTImageLoader": {
     "version": "0.1.0",
-    "description": "Each signal processed loads the next `batch_size` images from the dataset corresponding to `input_id`. Output is a rank-two tensor with shape (`batch_size`, 784), ready to be used by a NeuralNetwork block.",
+    "description": "Each signal processed loads the next `batch_size` images from the dataset corresponding to `input_id`. Output is a rank-two tensor with shape (`batch_size`, 784), ready to be used by a TensorFlow block.",
     "properties": {
       "batch_size": {
         "title": "Images per Batch",
@@ -37,7 +37,7 @@
     },
     "commands": {}
   },
-  "nio/NeuralNetwork": {
+  "nio/TensorFlow": {
     "version": "0.3.0",
     "description": "Accepts rank-two input tensors, each is fed-forward through a configured aritifial neural network, which predicts values for each of its outputs. Training and testing data will be compared to their empirical labels and evaluated for accuracy and loss, as defined by the user. During training weights are updated through back-propogration, according to the optimizer selected.",
     "properties": {
