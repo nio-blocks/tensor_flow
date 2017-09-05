@@ -2,12 +2,12 @@ from unittest.mock import patch, MagicMock, ANY
 from nio.block.terminals import DEFAULT_TERMINAL
 from nio.signal.base import Signal
 from nio.testing.block_test_case import NIOBlockTestCase
-from ..neural_network_block import NeuralNetwork
+from ..tensor_flow_block import TensorFlow
 import tensorflow as tf
 # https://www.tensorflow.org/api_guides/python/test
 
 
-class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
+class TestTensorFlowBlock(NIOBlockTestCase, tf.test.TestCase):
 
     block_config = {}
     input_signals = [Signal({'batch': MagicMock(), 'labels': MagicMock()})]
@@ -25,7 +25,7 @@ class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
         input_id='train'
         # run() returns 3 values
         mock_sess.return_value.run.return_value = [MagicMock()] * 3
-        blk = NeuralNetwork()
+        blk = TensorFlow()
         self.configure_block(blk, self.block_config)
         blk.start()
         blk.process_signals(self.input_signals, input_id)
@@ -45,7 +45,7 @@ class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
         input_id='test'
         # run() returns 2 values
         mock_sess.return_value.run.return_value = [MagicMock()] * 2
-        blk = NeuralNetwork()
+        blk = TensorFlow()
         self.configure_block(blk, self.block_config)
         blk.start()
         blk.process_signals(self.input_signals, input_id)
@@ -63,7 +63,7 @@ class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
     def test_process_predict_signals(self, mock_sess):
         """Signals processed by 'predict' return classification"""
         input_id='predict'
-        blk = NeuralNetwork()
+        blk = TensorFlow()
         self.configure_block(blk, self.block_config)
         blk.start()
         blk.process_signals(self.input_signals, input_id)
@@ -112,7 +112,7 @@ class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
         # "batch" here is input data for the network to do prediction on
         predict_input_signal = {'batch': []}
 
-        blk = NeuralNetwork()
+        blk = TensorFlow()
         self.configure_block(blk, self.block_config)
         blk.start()
         blk.process_signals([Signal(train_input_signal)], input_id='train')
@@ -139,7 +139,7 @@ class TestNeuralNetworkBlock(NIOBlockTestCase, tf.test.TestCase):
             self.last_notified[DEFAULT_TERMINAL][2].to_dict())
 
 
-class TestNeuralNetworkBlockMultiLayer(TestNeuralNetworkBlock):
+class TestTensorFlowBlockMultiLayer(TestTensorFlowBlock):
 
     # test two layers
     block_config = {
@@ -179,7 +179,7 @@ class TestNeuralNetworkBlockMultiLayer(TestNeuralNetworkBlock):
             ]
         }
 
-        blk = NeuralNetwork()
+        blk = TensorFlow()
         self.configure_block(blk, block_config)
         blk.start()
         blk.stop()
@@ -201,12 +201,11 @@ class TestSignalLists(NIOBlockTestCase):
     def test_process_signals(self, mock_sess):
         """Notified signal list is equal length to input"""
         mock_sess.return_value.run.return_value = [MagicMock()] * 3
-        blk = NeuralNetwork()
+        blk = TensorFlow()
         self.configure_block(blk, self.block_config)
         blk.start()
         blk.process_signals(self.input_signals, input_id='train')
         blk.stop()
-        self.assertEqual(len(self.last_notified[DEFAULT_TERMINAL]), 1)
 
 
 class TestSignalEnrichment(NIOBlockTestCase):
@@ -223,7 +222,7 @@ class TestSignalEnrichment(NIOBlockTestCase):
     @patch('tensorflow.Session')
     def test_enrich_mixin(self, mock_sess):
         mock_sess.return_value.run.return_value = [MagicMock()] * 3
-        blk = NeuralNetwork()
+        blk = TensorFlow()
         self.configure_block(blk, self.block_config)
         blk.start()
         blk.process_signals(self.input_signals, input_id='train')

@@ -7,10 +7,6 @@ from ..mnist_image_block import MNISTImageLoader
 
 class TestMNISTImageLoader(NIOBlockTestCase):
 
-    def signals_notified(self, block, signals, output_id):
-        """Override so that last_notified is list of signal lists"""
-        self.last_notified[output_id].append(signals)
-
     @patch('tensorflow.examples.tutorials.mnist.input_data.read_data_sets')
     def test_process_signals(self, mock_dataset):
         """For each input signal call next_batch(batch_size)"""
@@ -30,7 +26,7 @@ class TestMNISTImageLoader(NIOBlockTestCase):
         self.assert_num_signals_notified(len(train_signals + test_signals))
         self.assertDictEqual(
             {'batch': ANY, 'labels': ANY, 'input_id': ANY},
-            self.last_notified[DEFAULT_TERMINAL][-1][-1].to_dict())
+            self.last_notified[DEFAULT_TERMINAL][-1].to_dict())
         for i, arg in enumerate(
                 mock_dataset.return_value.train.next_batch.call_args_list):
             self.assertEqual((train_signals[i].to_dict()), arg[1])
