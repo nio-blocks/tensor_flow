@@ -96,6 +96,9 @@ class TensorFlow(EnrichSignals, Block):
     save_file = StringProperty(title='Save Weights to File',
                                default='',
                                allow_none=True)
+    load_file = StringProperty(title='Load Weights From File',
+                               default='',
+                               allow_none=True)
     version = VersionProperty('0.3.1')
 
     def __init__(self):
@@ -187,7 +190,10 @@ class TensorFlow(EnrichSignals, Block):
         self.prediction = Y
         self.saver = tf.train.Saver()
         self.sess = tf.Session()
-        self.sess.run(tf.global_variables_initializer())
+        if self.load_file():
+            self.saver.restore(self.sess, self.load_file())
+        else:
+            self.sess.run(tf.global_variables_initializer())
 
     def process_signals(self, signals, input_id=None):
         new_signals = []
