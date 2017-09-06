@@ -81,6 +81,15 @@ class NetworkConfig(PropertyHolder):
     random_seed = IntProperty(title="Random seed", default=0, visible=False)
 
 
+class ModelManagement(PropertyHolder):
+
+    save_file = StringProperty(title='Save Weights to File',
+                               default='',
+                               allow_none=True)
+    load_file = StringProperty(title='Load Weights From File',
+                               default='',
+                               allow_none=True)
+    
 @input('predict')
 @input('test')
 @input('train')
@@ -95,12 +104,9 @@ class TensorFlow(EnrichSignals, Block):
     network_config = ObjectProperty(NetworkConfig,
                                     title='ANN Configuration',
                                     defaul=NetworkConfig())
-    save_file = StringProperty(title='Save Weights to File',
-                               default='',
-                               allow_none=True)
-    load_file = StringProperty(title='Load Weights From File',
-                               default='',
-                               allow_none=True)
+    models = ObjectProperty(ModelManagement,
+                            title='Model Management',
+                            default=ModelManagement())
     version = VersionProperty('0.3.0')
 
     def __init__(self):
@@ -192,8 +198,8 @@ class TensorFlow(EnrichSignals, Block):
         self.prediction = Y
         self.saver = tf.train.Saver()
         self.sess = tf.Session()
-        if self.load_file():
-            self.saver.restore(self.sess, self.load_file())
+        if self.models().load_file():
+            self.saver.restore(self.sess, self.models().load_file())
         else:
             self.sess.run(tf.global_variables_initializer())
 
@@ -224,8 +230,8 @@ class TensorFlow(EnrichSignals, Block):
         self.notify_signals(new_signals)
 
     def stop(self):
-        if self.save_file():
-            self.saver.save(self.sess, self.save_file())
+        if self.models().save_file():
+            self.saver.save(self.sess, self.models().save_file())
         # todo: use context manager and remove this
         self.sess.close()
         super().stop()
