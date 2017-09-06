@@ -4,9 +4,11 @@ from enum import Enum
 from nio.block.base import Block
 from nio.block.terminals import input
 from nio.block.mixins.enrich.enrich_signals import EnrichSignals
-from nio.properties import VersionProperty, FloatProperty, PropertyHolder, \
-                           IntProperty, SelectProperty, ListProperty, \
-                           BoolProperty, ObjectProperty
+from nio.properties import VersionProperty, Property, FloatProperty, \
+                           PropertyHolder, IntProperty, SelectProperty, \
+                           ListProperty, BoolProperty, ObjectProperty, \
+                           StringProperty
+from nio.signal.base import Signal
 
 import tensorflow as tf
 

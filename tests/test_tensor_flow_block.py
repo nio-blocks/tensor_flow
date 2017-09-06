@@ -246,7 +246,7 @@ class TestVariableSaveAndLoad(NIOBlockTestCase):
     def test_save(self, mock_train, mock_sess):
         """A path is specified, variables are saved to and loaded from file"""
         session_obj = mock_sess.return_value = MagicMock()
-        blk = NeuralNetwork()
+        blk = TensorFlow()
         self.configure_block(blk, {'models': {'save_file': self.save_path,
                                               'load_file': self.load_path}})
         blk.start()
@@ -263,7 +263,7 @@ class TestVariableSaveAndLoad(NIOBlockTestCase):
     def test_no_save_or_load(self, mock_train, mock_sess):
         """No path is specified, variables are not saved nor loaded"""
         session_obj = mock_sess.return_value = MagicMock()
-        blk = NeuralNetwork()
+        blk = TensorFlow()
         self.configure_block(blk, {'models': {'save_file': '',
                                               'load_file': ''}})
         blk.start()
