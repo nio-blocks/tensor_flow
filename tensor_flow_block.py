@@ -4,12 +4,12 @@ from enum import Enum
 from nio.block.base import Block
 from nio.block.terminals import input
 from nio.block.mixins.enrich.enrich_signals import EnrichSignals
-from nio.properties import VersionProperty, Property, FloatProperty, \
-                           PropertyHolder, IntProperty, SelectProperty, \
-                           ListProperty, BoolProperty, ObjectProperty
-from nio.signal.base import Signal
+from nio.properties import VersionProperty, FloatProperty, PropertyHolder, \
+                           IntProperty, SelectProperty, ListProperty, \
+                           BoolProperty, ObjectProperty
 
 import tensorflow as tf
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # supress TF build warnings
 
 
@@ -140,9 +140,10 @@ class TensorFlow(EnrichSignals, Block):
                         else:
                             layers_logits[name + '_logits'] = \
                                 tf.matmul(prev_layer, W)
-                        layers_logits[name] = \
-                            getattr(tf.nn, layer.activation().value) \
-                                (layers_logits[name + '_logits'])
+                        layers_logits[name] = getattr(
+                            tf.nn,
+                            layer.activation().value
+                        )(layers_logits[name + '_logits'])
                     else:
                         if layer.bias.value:
                             logits = tf.matmul(prev_layer, W) + b
@@ -169,10 +170,11 @@ class TensorFlow(EnrichSignals, Block):
                                                         labels=self.Y_))
         if self.network_config().loss().value == 'mean_absolute_error':
             self.loss_function = tf.reduce_mean(abs(self.Y_ - Y))
-        self.train_step = \
-            getattr(tf.train, self.network_config().optimizer().value) \
-            (self.network_config().learning_rate()).minimize(
-                self.loss_function)
+        self.train_step = getattr(
+            tf.train,
+            self.network_config().optimizer().value)(
+                self.network_config().learning_rate()
+            ).minimize(self.loss_function)
         self.prediction = Y
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())

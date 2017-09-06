@@ -6,13 +6,13 @@
       "batch_size": {
         "title": "Images per Batch",
         "type": "IntType",
-        "description": "Number of images and labels per batch",
+        "description": "Number of images and labels per batch.",
         "default": 100
       },
       "shuffle": {
         "title": "Shuffle Batch",
         "type": "BoolType",
-        "description": "Randomize the order of each batch",
+        "description": "Randomize the order of each batch.",
         "default": true
       },
       "validation_size": {
@@ -24,15 +24,15 @@
     },
     "inputs": {
       "train": {
-        "description": "Load `batch_size` images from training dataset"
+        "description": "Load `batch_size` images from training dataset."
       },
       "test": {
-        "description": "Load `batch_size` images from testing dataset"
+        "description": "Load `batch_size` images from testing dataset."
       }
     },
     "outputs": {
       "default": {
-        "description": ""
+        "description": "A list of signals of equal length to input signals."
       }
     },
     "commands": {}
@@ -44,7 +44,7 @@
       "enrich": {
         "title": "Signal Enrichment",
         "type": "ObjectType",
-        "description": "",
+        "description": "*enrich_field:* The attribute on the signal to store the results from this block. If this is empty, the results will be merged onto the incoming signal. This is the default operation. Having this field allows a block to 'save' the results of an operation to a single field on an incoming signal and notify the enriched signal.  *results field:* The attribute on the signal to store the results from this block. If this is empty, the results will be merged onto the incoming signal. This is the default operation. Having this field allows a block to save the results of an operation to a single field on an incoming signal and notify the enriched signal.",
         "default": {
           "enrich_field": "",
           "exclude_existing": true
@@ -90,7 +90,7 @@
     },
     "outputs": {
       "default": {
-        "description": ""
+        "description": "A list of signals of equal length to input signals. Attribute values will be `None` if not applicable to the operation named by `input_id`."
       }
     },
     "commands": {}
