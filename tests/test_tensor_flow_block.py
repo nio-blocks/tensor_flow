@@ -235,3 +235,35 @@ class TestSignalEnrichment(NIOBlockTestCase):
         self.assertDictEqual(
             self.output_dict,
             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
+
+class TestVariableSave(NIOBlockTestCase):
+
+    path = 'path/to/save.ext'
+
+    @patch('tensorflow.Session')
+    @patch('tensorflow.train')
+    def test_save(self, mock_train, mock_sess):
+        """A path is specified, variables are saved to file"""
+        session_obj = mock_sess.return_value = MagicMock()
+        mock_train.Saver.return_value.save.return_value = MagicMock()
+        blk = NeuralNetwork()
+        self.configure_block(blk, {'save_file': self.path})
+        blk.start()
+        mock_train.Saver.assert_called_once_with()
+        blk.stop()
+        mock_train.Saver.return_value.save.assert_called_once_with(
+            session_obj,
+            self.path)
+
+    @patch('tensorflow.Session')
+    @patch('tensorflow.train')
+    def test_no_save(self, mock_train, mock_sess):
+        """No path is specified, variables are not saved"""
+        session_obj = mock_sess.return_value = MagicMock()
+        mock_train.Saver.return_value.save.return_value = MagicMock()
+        blk = NeuralNetwork()
+        self.configure_block(blk, {'save_file': ''})
+        blk.start()
+        mock_train.Saver.assert_called_once_with()
+        blk.stop()
+        mock_train.Saver.return_value.save.assert_not_called()

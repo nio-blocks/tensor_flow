@@ -93,7 +93,10 @@ class TensorFlow(EnrichSignals, Block):
     network_config = ObjectProperty(NetworkConfig,
                                     title='ANN Configuration',
                                     defaul=NetworkConfig())
-    version = VersionProperty("0.3.1")
+    save_file = StringProperty(title='Weights File',
+                               default='',
+                               allow_none=True)
+    version = VersionProperty('0.3.1')
 
     def __init__(self):
         super().__init__()
@@ -106,6 +109,7 @@ class TensorFlow(EnrichSignals, Block):
         self.prediction = None
         self.sess = None
         self.loss_function = None
+        self.saver = None
 
     def configure(self, context):
         super().configure(context)
@@ -176,6 +180,7 @@ class TensorFlow(EnrichSignals, Block):
                 self.network_config().learning_rate()
             ).minimize(self.loss_function)
         self.prediction = Y
+        self.saver = tf.train.Saver()
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())
 
@@ -206,6 +211,8 @@ class TensorFlow(EnrichSignals, Block):
         self.notify_signals(new_signals)
 
     def stop(self):
+        if self.save_file():
+            self.saver.save(self.sess, self.save_file())
         # todo: use context manager and remove this
         self.sess.close()
         super().stop()
