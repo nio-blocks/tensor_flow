@@ -93,7 +93,7 @@ class TensorFlow(EnrichSignals, Block):
     network_config = ObjectProperty(NetworkConfig,
                                     title='ANN Configuration',
                                     defaul=NetworkConfig())
-    version = VersionProperty('0.3.0')
+    version = VersionProperty("0.3.1")
 
     def __init__(self):
         super().__init__()
