@@ -258,8 +258,6 @@ class TestVariableSaveAndLoad(NIOBlockTestCase):
             session_obj,
             self.load_path)
 
-
-
     @patch('tensorflow.Session')
     @patch('tensorflow.train')
     def test_no_save_or_load(self, mock_train, mock_sess):
