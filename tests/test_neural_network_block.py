@@ -243,25 +243,16 @@ class TestVariableSaveAndLoad(NIOBlockTestCase):
     @patch('tensorflow.Session')
     @patch('tensorflow.train')
     def test_save(self, mock_train, mock_sess):
-        """A path is specified, variables are saved to file"""
+        """A path is specified, variables are saved to and loaded from file"""
         session_obj = mock_sess.return_value = MagicMock()
         blk = NeuralNetwork()
-        self.configure_block(blk, {'save_file': self.save_path})
+        self.configure_block(blk, {'models': {'save_file': self.save_path,
+                                              'load_file': self.load_path}})
         blk.start()
         blk.stop()
         mock_train.Saver.return_value.save.assert_called_once_with(
             session_obj,
             self.save_path)
-
-    @patch('tensorflow.Session')
-    @patch('tensorflow.train')
-    def test_load(self, mock_train, mock_sess):
-        """A path is specified, variables are loaded from file"""
-        session_obj = mock_sess.return_value = MagicMock()
-        blk = NeuralNetwork()
-        self.configure_block(blk, {'load_file': self.load_path})
-        blk.start()
-        blk.stop()
         mock_train.Saver.return_value.restore.assert_called_once_with(
             session_obj,
             self.load_path)
@@ -272,7 +263,8 @@ class TestVariableSaveAndLoad(NIOBlockTestCase):
         """No path is specified, variables are not saved nor loaded"""
         session_obj = mock_sess.return_value = MagicMock()
         blk = NeuralNetwork()
-        self.configure_block(blk, {'save_file': '', 'load_file': ''})
+        self.configure_block(blk, {'models': {'save_file': '',
+                                              'load_file': ''}})
         blk.start()
         blk.stop()
         mock_train.Saver.return_value.save.assert_not_called()
