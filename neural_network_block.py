@@ -6,7 +6,8 @@ from nio.block.terminals import input
 from nio.block.mixins.enrich.enrich_signals import EnrichSignals
 from nio.properties import VersionProperty, Property, FloatProperty, \
                            PropertyHolder, IntProperty, SelectProperty, \
-                           ListProperty, BoolProperty, ObjectProperty
+                           ListProperty, BoolProperty, ObjectProperty, \
+                           StringProperty
 from nio.signal.base import Signal
 
 import tensorflow as tf
@@ -93,6 +94,9 @@ class NeuralNetwork(EnrichSignals, Block):
     network_config = ObjectProperty(NetworkConfig,
                                     title='ANN Configuration',
                                     defaul=NetworkConfig())
+    save_file = StringProperty(title='Weights File',
+                               default='',
+                               allow_none=True)
     version = VersionProperty('0.3.0')
 
     def __init__(self):
@@ -106,6 +110,7 @@ class NeuralNetwork(EnrichSignals, Block):
         self.prediction = None
         self.sess = None
         self.loss_function = None
+        self.saver = None
 
     def configure(self, context):
         super().configure(context)
@@ -174,6 +179,7 @@ class NeuralNetwork(EnrichSignals, Block):
             (self.network_config().learning_rate()).minimize(
                 self.loss_function)
         self.prediction = Y
+        self.saver = tf.train.Saver()
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())
 
@@ -204,6 +210,8 @@ class NeuralNetwork(EnrichSignals, Block):
         self.notify_signals(new_signals)
 
     def stop(self):
+        if self.save_file():
+            self.saver.save(self.sess, self.save_file())
         # todo: use context manager and remove this
         self.sess.close()
         super().stop()
