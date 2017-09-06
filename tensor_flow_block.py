@@ -93,7 +93,7 @@ class TensorFlow(EnrichSignals, Block):
     network_config = ObjectProperty(NetworkConfig,
                                     title='ANN Configuration',
                                     defaul=NetworkConfig())
-    save_file = StringProperty(title='Weights File',
+    save_file = StringProperty(title='Save Weights to File',
                                default='',
                                allow_none=True)
     version = VersionProperty('0.3.1')
@@ -114,6 +114,11 @@ class TensorFlow(EnrichSignals, Block):
     def configure(self, context):
         super().configure(context)
         tf.set_random_seed(self.network_config().random_seed())
+
+        # # this line may be nececssary for loading graphs... must be called
+        # # before any ops or tensor objects are defined
+        # tf.reset_default_graph()
+
         # input tensors shape
         self.X = tf.placeholder(tf.float32,
                                 shape=[None,
