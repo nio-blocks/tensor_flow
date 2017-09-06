@@ -172,8 +172,9 @@ class TensorFlow(EnrichSignals, Block):
             self.loss_function = tf.reduce_mean(abs(self.Y_ - Y))
         self.train_step = getattr(
             tf.train,
-            self.network_config().optimizer().value
-        )(self.network_config().learning_rate()).minimize(self.loss_function)
+            self.network_config().optimizer().value)(
+                self.network_config().learning_rate()
+            ).minimize(self.loss_function)
         self.prediction = Y
         self.sess = tf.Session()
         self.sess.run(tf.global_variables_initializer())
