@@ -193,10 +193,6 @@ class TestSignalLists(NIOBlockTestCase):
     block_config = {}
     input_signals = [Signal({'batch': MagicMock(), 'labels': MagicMock()})] * 2
 
-    def signals_notified(self, block, signals, output_id):
-        """Override so that last_notified is list of signal lists"""
-        self.last_notified[output_id].append(signals)
-
     @patch('tensorflow.Session')
     def test_process_signals(self, mock_sess):
         """Notified signal list is equal length to input"""
@@ -206,6 +202,10 @@ class TestSignalLists(NIOBlockTestCase):
         blk.start()
         blk.process_signals(self.input_signals, input_id='train')
         blk.stop()
+        # input and output are both one list of two signals
+        self.assertEqual(len(self.notified_signals[DEFAULT_TERMINAL]), 1)
+        self.assertEqual(len(self.notified_signals[DEFAULT_TERMINAL][-1]),
+                         len(self.input_signals))
 
 
 class TestSignalEnrichment(NIOBlockTestCase):
