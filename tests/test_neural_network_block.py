@@ -235,34 +235,45 @@ class TestSignalEnrichment(NIOBlockTestCase):
             self.output_dict,
             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
 
-class TestVariableSave(NIOBlockTestCase):
+class TestVariableSaveAndLoad(NIOBlockTestCase):
 
-    path = 'path/to/save.ext'
+    save_path = 'path/to/save.ext'
+    load_path = 'path/to/load.ext'
 
     @patch('tensorflow.Session')
     @patch('tensorflow.train')
     def test_save(self, mock_train, mock_sess):
         """A path is specified, variables are saved to file"""
         session_obj = mock_sess.return_value = MagicMock()
-        mock_train.Saver.return_value.save.return_value = MagicMock()
         blk = NeuralNetwork()
-        self.configure_block(blk, {'save_file': self.path})
+        self.configure_block(blk, {'save_file': self.save_path})
         blk.start()
-        mock_train.Saver.assert_called_once_with()
         blk.stop()
         mock_train.Saver.return_value.save.assert_called_once_with(
             session_obj,
-            self.path)
+            self.save_path)
 
     @patch('tensorflow.Session')
     @patch('tensorflow.train')
-    def test_no_save(self, mock_train, mock_sess):
-        """No path is specified, variables are not saved"""
+    def test_load(self, mock_train, mock_sess):
+        """A path is specified, variables are loaded from file"""
         session_obj = mock_sess.return_value = MagicMock()
-        mock_train.Saver.return_value.save.return_value = MagicMock()
         blk = NeuralNetwork()
-        self.configure_block(blk, {'save_file': ''})
+        self.configure_block(blk, {'load_file': self.load_path})
         blk.start()
-        mock_train.Saver.assert_called_once_with()
+        blk.stop()
+        mock_train.Saver.return_value.restore.assert_called_once_with(
+            session_obj,
+            self.load_path)
+
+    @patch('tensorflow.Session')
+    @patch('tensorflow.train')
+    def test_no_save_or_load(self, mock_train, mock_sess):
+        """No path is specified, variables are not saved nor loaded"""
+        session_obj = mock_sess.return_value = MagicMock()
+        blk = NeuralNetwork()
+        self.configure_block(blk, {'save_file': '', 'load_file': ''})
+        blk.start()
         blk.stop()
         mock_train.Saver.return_value.save.assert_not_called()
+        mock_train.Saver.return_value.restore.assert_not_called()
