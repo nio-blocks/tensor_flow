@@ -1,10 +1,12 @@
 from unittest.mock import patch, MagicMock, ANY
+import tensorflow as tf
+# https://www.tensorflow.org/api_guides/python/test
+
 from nio.block.terminals import DEFAULT_TERMINAL
 from nio.signal.base import Signal
 from nio.testing.block_test_case import NIOBlockTestCase
+
 from ..tensor_flow_block import TensorFlow
-import tensorflow as tf
-# https://www.tensorflow.org/api_guides/python/test
 
 
 class TestTensorFlowBlock(NIOBlockTestCase, tf.test.TestCase):
@@ -22,7 +24,7 @@ class TestTensorFlowBlock(NIOBlockTestCase, tf.test.TestCase):
     @patch('tensorflow.Session')
     def test_process_train_signals(self, mock_sess):
         """Signals processed by 'train' input execute one training iteration"""
-        input_id='train'
+        input_id = 'train'
         # run() returns 3 values
         mock_sess.return_value.run.return_value = [MagicMock()] * 3
         blk = TensorFlow()
@@ -42,7 +44,7 @@ class TestTensorFlowBlock(NIOBlockTestCase, tf.test.TestCase):
     @patch('tensorflow.Session')
     def test_process_test_signals(self, mock_sess):
         """Signals processed by 'test' return accuracy and loss"""
-        input_id='test'
+        input_id = 'test'
         # run() returns 2 values
         mock_sess.return_value.run.return_value = [MagicMock()] * 2
         blk = TensorFlow()
@@ -62,7 +64,7 @@ class TestTensorFlowBlock(NIOBlockTestCase, tf.test.TestCase):
     @patch('tensorflow.Session')
     def test_process_predict_signals(self, mock_sess):
         """Signals processed by 'predict' return classification"""
-        input_id='predict'
+        input_id = 'predict'
         blk = TensorFlow()
         self.configure_block(blk, self.block_config)
         blk.start()
@@ -193,10 +195,6 @@ class TestSignalLists(NIOBlockTestCase):
     block_config = {}
     input_signals = [Signal({'batch': MagicMock(), 'labels': MagicMock()})] * 2
 
-    def signals_notified(self, block, signals, output_id):
-        """Override so that last_notified is list of signal lists"""
-        self.last_notified[output_id].append(signals)
-
     @patch('tensorflow.Session')
     def test_process_signals(self, mock_sess):
         """Notified signal list is equal length to input"""
@@ -206,6 +204,10 @@ class TestSignalLists(NIOBlockTestCase):
         blk.start()
         blk.process_signals(self.input_signals, input_id='train')
         blk.stop()
+        # input and output are both one list of two signals
+        self.assertEqual(len(self.notified_signals[DEFAULT_TERMINAL]), 1)
+        self.assertEqual(len(self.notified_signals[DEFAULT_TERMINAL][-1]),
+                         len(self.input_signals))
 
 
 class TestSignalEnrichment(NIOBlockTestCase):

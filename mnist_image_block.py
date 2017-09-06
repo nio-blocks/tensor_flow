@@ -1,6 +1,6 @@
 from nio.block.base import Block
 from nio.block.terminals import input
-from nio.properties import *
+from nio.properties import IntProperty, BoolProperty, VersionProperty
 from nio.signal.base import Signal
 from tensorflow.examples.tutorials.mnist import input_data as mnist_data
 
@@ -9,12 +9,12 @@ from tensorflow.examples.tutorials.mnist import input_data as mnist_data
 @input('train')
 class MNISTImageLoader(Block):
 
-    """Generates pixel data and labels from MNIST handwriting dataset. 
-    If not already present in `data/` the source data will be downloaded 
-    automatically. The output signal is ready to use by a NeuralNetwork 
+    """Generates pixel data and labels from MNIST handwriting dataset.
+    If not already present in `data/` the source data will be downloaded
+    automatically. The output signal is ready to use by a NeuralNetwork
     block.
 
-    Each signal processed loads the next `batch_size` images from the 
+    Each signal processed loads the next `batch_size` images from the
     dataset corresponding to `input_id`.
     """
 
