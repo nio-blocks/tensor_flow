@@ -250,6 +250,7 @@ class TestVariableSaveAndLoad(NIOBlockTestCase):
         self.configure_block(blk, {'models': {'save_file': self.save_path,
                                               'load_file': self.load_path}})
         blk.start()
+        mock_train.Saver.assert_called_once_with(max_to_keep=0)
         blk.stop()
         mock_train.Saver.return_value.save.assert_called_once_with(
             session_obj,
