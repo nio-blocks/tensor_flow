@@ -196,7 +196,7 @@ class TensorFlow(EnrichSignals, Block):
                 self.network_config().learning_rate()
             ).minimize(self.loss_function)
         self.prediction = Y
-        self.saver = tf.train.Saver()
+        self.saver = tf.train.Saver(max_to_keep=0)
         self.sess = tf.Session()
         if self.models().load_file():
             self.saver.restore(self.sess, self.models().load_file())
@@ -231,6 +231,8 @@ class TensorFlow(EnrichSignals, Block):
 
     def stop(self):
         if self.models().save_file():
+            self.logger.debug('saving model to {}'.format(
+                self.models().save_file()))
             self.saver.save(self.sess, self.models().save_file())
         # todo: use context manager and remove this
         self.sess.close()
