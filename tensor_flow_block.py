@@ -182,7 +182,7 @@ class TensorFlow(EnrichSignals, Block):
         Y_logits = layers_logits['layer{}_logits'.format(output_layer_num)]
         self.accuracy = 1 - tf.reduce_mean(abs(self.Y_ - Y))
         if self.network_config().loss().value == 'cross_entropy':
-            self.loss_function = -tf.reduce_mean(self.Y_ * tf.log(Y))
+            self.loss_function = tf.reduce_mean(abs(self.Y_ * tf.log(Y)))
         if self.network_config().loss().value == \
                 'softmax_cross_entropy_with_logits':
             self.loss_function = tf.reduce_mean(
