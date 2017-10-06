@@ -234,7 +234,6 @@ class TensorFlow(EnrichSignals, Block):
             self.logger.debug('saving model to {}'.format(
                 self.models().save_file()))
             self.saver.save(self.sess, self.models().save_file())
-        # todo: use context manager and remove this
         self.sess.close()
         super().stop()
 
