@@ -130,10 +130,6 @@ class TensorFlow(EnrichSignals, Block):
         super().configure(context)
         tf.set_random_seed(self.network_config().random_seed())
 
-        # # this line may be nececssary for loading graphs... must be called
-        # # before any ops or tensor objects are defined
-        # tf.reset_default_graph()
-
         # input tensors shape
         self.X = tf.placeholder(tf.float32,
                                 shape=[None,
