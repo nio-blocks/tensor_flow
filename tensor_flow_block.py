@@ -46,6 +46,7 @@ class ActivationFunctions(Enum):
     crelu = 'crelu'
     dropout = 'dropout'
     bias_add = 'bias_add'
+    conv1d = 'conv1d'
 
 
 class InitialValues(Enum):
@@ -55,8 +56,7 @@ class InitialValues(Enum):
 
 
 class Layers(PropertyHolder):
-    count = IntProperty(title='Number of Neurons',
-                        default=10)
+    count = IntProperty(title='Number of Neurons', default=10)
     activation = SelectProperty(ActivationFunctions,
                                 title='Activation Function',
                                 default=ActivationFunctions.softmax)
@@ -64,6 +64,8 @@ class Layers(PropertyHolder):
                                      title='Initial Weight Values',
                                      default=InitialValues.random)
     bias = BoolProperty(title='Add Bias Unit', default=True)
+    filter = IntProperty(title='1-D Convolution Filter Size', default=4)
+    stride = IntProperty(title='1-D Convolution Stride', default=1)
 
 
 class NetworkConfig(PropertyHolder):
@@ -100,7 +102,9 @@ class TensorFlow(EnrichSignals, Block):
                           default=[{'count': 10,
                                     'activation': 'softmax',
                                     'initial_weights': 'random',
-                                    'bias': True}])
+                                    'bias': True,
+                                    'filter': 4,
+                                    'stride': 1}])
     network_config = ObjectProperty(NetworkConfig,
                                     title='ANN Configuration',
                                     defaul=NetworkConfig())
