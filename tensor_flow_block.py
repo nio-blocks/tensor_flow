@@ -172,19 +172,20 @@ class TensorFlow(EnrichSignals, Block):
                             # todo: verify op, with input 200 and stride 4 output was 198...
                             input = tf.expand_dims(prev_layer, axis=-1)
                             filter = tf.convert_to_tensor(
-                                [[[layer.filter()]], [[1]], [[1]]], dtype=tf.float32)
+                                [[[layer.filter()]], [[1]], [[1]]],
+                                dtype=tf.float32)
                             layers_logits[name] = \
                                 tf.nn.conv1d(
                                     input,
                                     filter,
                                     layer.stride(),
-                                    padding='VALID',
-                                    data_format='NHWC')
+                                    padding='VALID')
                             layers_logits[name] = \
                                 tf.squeeze(layers_logits[name], axis=-1)
                         else:
                             layers_logits[name] = \
-                                getattr(tf.nn, layer.activation().value)(logits)
+                                getattr(tf.nn,
+                                        layer.activation().value)(logits)
                 else:
                     name = 'layer{}_d'.format(i)
                     layers_logits[name] = tf.nn.dropout(prev_layer,
