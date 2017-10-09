@@ -169,11 +169,11 @@ class TensorFlow(EnrichSignals, Block):
                         else:
                             logits = tf.matmul(prev_layer, W)
                         if layer.activation().value == 'conv1d':
-                            # todo: verify op, with input 200 and stride 4 output was 198...
                             input = tf.expand_dims(prev_layer, axis=-1)
-                            filter = tf.convert_to_tensor(
-                                [[[layer.filter()]], [[1]], [[1]]],
-                                dtype=tf.float32)
+                            filter = tf.Variable(
+                                getattr(tf, layer.initial_weights().value)(
+                                    [layer.filter(), 1, 1]),
+                                    dtype=tf.float32)
                             layers_logits[name] = \
                                 tf.nn.conv1d(
                                     input,
