@@ -174,14 +174,13 @@ class TensorFlow(EnrichSignals, Block):
                                 getattr(tf, layer.initial_weights().value)(
                                     [layer.filter(), 1, 1]),
                                     dtype=tf.float32)
-                            layers_logits[name] = \
+                            layers_logits[name] = tf.squeeze(
                                 tf.nn.conv1d(
                                     input,
                                     filter,
                                     layer.stride(),
-                                    padding='VALID')
-                            layers_logits[name] = \
-                                tf.squeeze(layers_logits[name], axis=-1)
+                                    padding='VALID'),
+                                axis=-1)
                         else:
                             layers_logits[name] = \
                                 getattr(tf.nn,
