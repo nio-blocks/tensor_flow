@@ -46,8 +46,6 @@ class ActivationFunctions(Enum):
     crelu = 'crelu'
     dropout = 'dropout'
     bias_add = 'bias_add'
-    conv1d = 'conv1d'
-
 
 class InitialValues(Enum):
     random = 'truncated_normal'
@@ -64,8 +62,8 @@ class Layers(PropertyHolder):
                                      title='Initial Weight Values',
                                      default=InitialValues.random)
     bias = BoolProperty(title='Add Bias Unit', default=True)
-    filter = IntProperty(title='1-D Convolution Filter Size', default=4)
-    stride = IntProperty(title='1-D Convolution Stride', default=1)
+    filter = IntProperty(title='1-D Convolution Filter Size', default=0, allow_none=True)
+    stride = IntProperty(title='1-D Convolution Stride', default=0, allow_none=True)
 
 
 class NetworkConfig(PropertyHolder):
@@ -151,40 +149,39 @@ class TensorFlow(EnrichSignals, Block):
                     getattr(tf, layer.initial_weights().value)
                     ([layer.count()]))
                 if layer.activation().value != 'dropout':
-                    if i == (len(self.layers()) - 1):
-                        # calculate logits seperately for use by loss function
-                        if layer.bias.value:
-                            layers_logits[name + '_logits'] = \
-                                tf.matmul(prev_layer, W) + b
-                        else:
-                            layers_logits[name + '_logits'] = \
-                                tf.matmul(prev_layer, W)
-                        layers_logits[name] = getattr(
-                            tf.nn,
-                            layer.activation().value
-                        )(layers_logits[name + '_logits'])
+                    # calculate logits seperately for use by loss function
+                    if layer.bias.value:
+                        layers_logits[name + '_logits'] = \
+                            tf.matmul(prev_layer, W) + b
                     else:
-                        if layer.bias.value:
-                            logits = tf.matmul(prev_layer, W) + b
-                        else:
-                            logits = tf.matmul(prev_layer, W)
-                        if layer.activation().value == 'conv1d':
-                            input = tf.expand_dims(prev_layer, axis=-1)
-                            filter = tf.Variable(
-                                getattr(tf, layer.initial_weights().value)(
-                                    [layer.filter(), 1, 1]),
-                                    dtype=tf.float32)
-                            layers_logits[name] = tf.squeeze(
-                                tf.nn.conv1d(
-                                    input,
-                                    filter,
-                                    layer.stride(),
-                                    padding='VALID'),
-                                axis=-1)
-                        else:
-                            layers_logits[name] = \
-                                getattr(tf.nn,
-                                        layer.activation().value)(logits)
+                        layers_logits[name + '_logits'] = \
+                            tf.matmul(prev_layer, W)
+                    layers_logits[name] = getattr(
+                        tf.nn,
+                        layer.activation().value
+                    )(layers_logits[name + '_logits'])
+                    if layer.bias.value:
+                        logits = tf.matmul(prev_layer, W) + b
+                    else:
+                        logits = tf.matmul(prev_layer, W)
+
+                    if layer.filter.value and layer.stride.value':
+                        input = tf.expand_dims(prev_layer, axis=-1)
+                        filter = tf.Variable(
+                            getattr(tf, layer.initial_weights().value)(
+                                [layer.filter(), 1, layer.count()]),
+                                dtype=tf.float32)
+                        layers_logits[name] = tf.squeeze(
+                            tf.nn.conv1d(
+                                input,
+                                filter,
+                                layer.stride(),
+                                padding='VALID'),
+                            axis=-1)
+                    else:
+                        layers_logits[name] = \
+                            getattr(tf.nn,
+                                    layer.activation().value)(logits)
                 else:
                     name = 'layer{}_d'.format(i)
                     layers_logits[name] = tf.nn.dropout(prev_layer,
