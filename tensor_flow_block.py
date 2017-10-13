@@ -62,8 +62,8 @@ class Layers(PropertyHolder):
                                      title='Initial Weight Values',
                                      default=InitialValues.random)
     bias = BoolProperty(title='Add Bias Unit', default=True)
-    filter = IntProperty(title='1-D Convolution Filter Size', default=0, allow_none=True)
-    stride = IntProperty(title='1-D Convolution Stride', default=0, allow_none=True)
+    filter = IntProperty(title='1-D Convolution Filter Size', default=0)
+    stride = IntProperty(title='1-D Convolution Stride', default=0)
 
 
 class NetworkConfig(PropertyHolder):
@@ -101,8 +101,8 @@ class TensorFlow(EnrichSignals, Block):
                                     'activation': 'softmax',
                                     'initial_weights': 'random',
                                     'bias': True,
-                                    'filter': 4,
-                                    'stride': 1}])
+                                    'filter': 0,
+                                    'stride': 0}])
     network_config = ObjectProperty(NetworkConfig,
                                     title='ANN Configuration',
                                     defaul=NetworkConfig())
@@ -165,19 +165,25 @@ class TensorFlow(EnrichSignals, Block):
                     else:
                         logits = tf.matmul(prev_layer, W)
 
-                    if layer.filter.value and layer.stride.value':
+                    if layer.filter.value and layer.stride.value:
                         input = tf.expand_dims(prev_layer, axis=-1)
+                        if layer.bias.value:
+                            b = tf.Variable(
+                                getattr(tf, layer.initial_weights().value)
+                                ([input.get_shape().as_list()[-1]]))
+                            input += b
                         filter = tf.Variable(
                             getattr(tf, layer.initial_weights().value)(
                                 [layer.filter(), 1, layer.count()]),
                                 dtype=tf.float32)
-                        layers_logits[name] = tf.squeeze(
-                            tf.nn.conv1d(
-                                input,
-                                filter,
-                                layer.stride(),
-                                padding='VALID'),
-                            axis=-1)
+                        output = getattr(tf.nn, layer.activation().value)(
+                            tf.nn.conv1d(input,
+                            filter,
+                            layer.stride(),
+                            padding='VALID')) # todo: add bias
+                        layers_logits[name] = tf.reshape(
+                            output,
+                            [-1, output.get_shape().as_list()[-2] * output.get_shape().as_list()[-1]])
                     else:
                         layers_logits[name] = \
                             getattr(tf.nn,
