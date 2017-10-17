@@ -33,7 +33,7 @@ Output Details
 
 TensorFlow
 ==========
-Accepts rank-two input tensors, each is fed-forward through a configured aritifial neural network, which predicts values for each of its outputs. Training and testing data will be compared to their empirical labels and evaluated for accuracy and loss, as defined by the user. During training weights are updated through back-propogration, according to the optimizer selected.
+Accepts rank-two input tensors, each is fed-forward through a configured artificial neural network, which predicts values for each of its outputs. Training and testing data will be compared to their empirical labels and evaluated for accuracy and loss, as defined by the user. During training weights are updated through back-propogration, according to the optimizer selected.
 
 Properties
 ----------
