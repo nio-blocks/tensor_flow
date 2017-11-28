@@ -2,12 +2,13 @@ from nio.block.base import Block
 from nio.block.terminals import input
 from nio.properties import IntProperty, BoolProperty, VersionProperty
 from nio.signal.base import Signal
+from nio.block.mixins.enrich.enrich_signals import EnrichSignals
 from tensorflow.examples.tutorials.mnist import input_data as mnist_data
 
 
 @input('test')
 @input('train')
-class MNISTImageLoader(Block):
+class MNISTImageLoader(EnrichSignals, Block):
 
     """Generates pixel data and labels from MNIST handwriting dataset.
     If not already present in `data/` the source data will be downloaded
