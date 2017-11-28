@@ -19,10 +19,12 @@ class MNISTImageLoader(EnrichSignals, Block):
     dataset corresponding to `input_id`.
     """
 
-    version = VersionProperty('0.1.0')
+    version = VersionProperty('0.2.0')
     batch_size = IntProperty(title='Images per Batch', default=100)
     shuffle = BoolProperty(title='Shuffle Batch', default=True, visible=False)
-    validation_size = IntProperty(title='Validation Size', default=0)
+    validation_size = IntProperty(title='Validation Size',
+                                  default=0,
+                                  visible=False)
 
     def __init__(self):
         super().__init__()
@@ -42,7 +44,8 @@ class MNISTImageLoader(EnrichSignals, Block):
             kwargs = {'batch_size': self.batch_size(signal),
                       'shuffle': self.shuffle(signal)}
             batch = getattr(self.mnist, input_id).next_batch(**kwargs)
-            output_signals.append(Signal({'batch': batch[0],
-                                          'labels': batch[1],
-                                          'input_id': input_id}))
+            new_signal = self.get_output_signal(
+                {'batch': batch[0], 'labels': batch[1], 'input_id': input_id},
+                signal)
+            output_signals.append(new_signal)
         self.notify_signals(output_signals)

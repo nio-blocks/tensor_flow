@@ -1,7 +1,7 @@
 {
   "nio/MNISTImageLoader": {
-    "version": "0.1.0",
-    "description": "Each signal processed loads the next `batch_size` images from the dataset corresponding to `input_id`. Output is a rank-two tensor with shape (`batch_size`, 784), ready to be used by a TensorFlow block.",
+    "version": "0.2.0",
+    "description": "Each signal processed loads the next `batch_size` images from the dataset corresponding to `input_id`. Output is a batch of flattened images in a rank-two tensor, with labels, ready to be used by a TensorFlow block.",
     "categories": [
       "Machine Learning"
     ],
@@ -12,16 +12,25 @@
         "description": "Number of images and labels per batch.",
         "default": 100
       },
+      "enrich": {
+        "title": "Signal Enrichment",
+        "type": "ObjectType",
+        "description": "Signal Enrichment\n  - *exclude_existing*: If checked (true), the attributes of the incoming signal will be excluded from the outgoing signal. If unchecked (false), the attributes of the incoming signal will be included in the outgoing signal.\n  - *enrich_field*: (hidden) The attribute on the signal to store the results from this block. If this is empty, the results will be merged onto the incoming signal. This is the default operation. Having this field allows a block to 'save' the results of an operation to a single field on an incoming signal and notify the enriched signal.",
+        "default": {
+          "enrich_field": "",
+          "exclude_existing": true
+        }
+      },
       "shuffle": {
         "title": "Shuffle Batch",
         "type": "BoolType",
-        "description": "Randomize the order of each batch.",
+        "description": "(hidden) Randomize the order of each batch.",
         "default": true
       },
       "validation_size": {
         "title": "Validation Size",
         "type": "IntType",
-        "description": "Number of images and labels to reserve from training data for cross-validation.",
+        "description": "(hidden) Number of images and labels to reserve from training data for cross-validation.",
         "default": 0
       }
     },
@@ -35,14 +44,14 @@
     },
     "outputs": {
       "default": {
-        "description": "A list of signals of equal length to input signals."
+        "description": "A list of signals of equal length to input signals.\n  - *batch* (array) Flattened image data with shape (`batch_size`, 784).\n  - *labels* (array) Image labels with shape (`batch_size`, 10)."
       }
     },
     "commands": {}
   },
   "nio/TensorFlow": {
-    "version": "0.3.1",
-    "description": "Accepts rank-two input tensors, each is fed-forward through a configured artificial neural network, which predicts values for each of its outputs. Training and testing data will be compared to their empirical labels and evaluated for accuracy and loss, as defined by the user. During training, weights are updated through back-propogration, according to the optimizer selected.",
+    "version": "0.4.0",
+    "description": "Accepts rank-two input tensors, each is fed-forward through a configured artificial neural network, which predicts values for each of its outputs. Training and testing data will be compared to their empirical labels and evaluated for loss as defined by the user. During training weights are updated through back-propogration, according to the optimizer selected. The default configuration is ready to take input from an MNISTImageLoader block, and will surpass 90% accuracy in about 2,000 training steps.",
     "categories": [
       "Machine Learning"
     ],
@@ -50,7 +59,7 @@
       "enrich": {
         "title": "Signal Enrichment",
         "type": "ObjectType",
-        "description": "*enrich_field:* The attribute on the signal to store the results from this block. If this is empty, the results will be merged onto the incoming signal. This is the default operation. Having this field allows a block to 'save' the results of an operation to a single field on an incoming signal and notify the enriched signal.  *results field:* The attribute on the signal to store the results from this block. If this is empty, the results will be merged onto the incoming signal. This is the default operation. Having this field allows a block to save the results of an operation to a single field on an incoming signal and notify the enriched signal.",
+        "description": "Signal Enrichment\n  - *exclude_existing*: If checked (true), the attributes of the incoming signal will be excluded from the outgoing signal. If unchecked (false), the attributes of the incoming signal will be included in the outgoing signal.\n  - *enrich_field*: (hidden) The attribute on the signal to store the results from this block. If this is empty, the results will be merged onto the incoming signal. This is the default operation. Having this field allows a block to 'save' the results of an operation to a single field on an incoming signal and notify the enriched signal.",
         "default": {
           "enrich_field": "",
           "exclude_existing": true
@@ -59,44 +68,56 @@
       "layers": {
         "title": "Network Layers",
         "type": "ListType",
-        "description": "Define one or more network layers with the specified number of neurons, a bias unit if selected, an activation function, and initial weight values. Each layer's input is the layer before it (or input data, in the case of the first layer).",
+        "description": "Define one or more network layers. Each layer's input is the layer before it (or input data, in the case of the first layer).\n  - *count*: Number of neurons in this layer\n  - *activation*: Activation function, use *bias_add* to use no activation function.\n  - *initial_weights*: Initialize newly created model weights with random or fixed values.\n  - *bias*: Add a bias unit to this layer's input.",
         "default": [
           {
-            "activation": "softmax",
-            "bias": true,
             "count": 10,
-            "initial_weights": "random"
+            "activation": "softmax",
+            "initial_weights": "random",
+            "bias": true
           }
         ]
+      },
+      "models": {
+        "title": "Model Management",
+        "type": "ObjectType",
+        "description": "Visualize models using [TensorBoard](https://www.tensorflow.org/get_started/summaries_and_tensorboard#launching_tensorboard). Save and Load training progress in [Checkpoint Files](https://www.tensorflow.org/versions/master/get_started/checkpoints).\n  - *save_file*: If not blank, when stopped the block will save its internal weights and bias values to this path.\n  - *load_file*: If not blank, when configured the block will load weight values from this path instead of applying the `initial_weights` specified for each layer.\n  - *tensorboard_int*: Number of training steps between each update of TensorBoard event files, set to 0 to disable.\n  - *tensorboard_tag*: (hidden) Run label, records will be saved to a subdirectory with this name inside `tensorbarod_dir`. Default is a string of the current local time, as `YYYYMMDDHHMMSS`.\n  - *tensorboard_dir*: (hidden) Path to event files, defaults to `<project>/tensorboard`.",
+        "default": {
+          "save_file": "",
+          "load_file": "",
+          "tensorboard_int": 0,
+          "tensorboard_tag": "{{ datetime.datetime.now().strftime('%Y%m%d%H%M%S') }}",
+          "tensorboard_dir": "tensorboard"
+        }
       },
       "network_config": {
         "title": "ANN Configuration",
         "type": "ObjectType",
-        "description": "Parameters of the artifical neural network. Dropout is only used if one or more dropout layers are configured in the network.",
+        "description": "Hyperparameters of the artifical neural network.\n  - *input_dim*: Number of input values to the first layer.\n  - *learning_rate*: Multiplier for updates to weight values.\n  - *loss*: Loss function to quantify prediction accuracy.\n  - *optimizer*: Optimizer algorithm to compute gradients and apply weight updates.\n  - *dropout*: Percentage of this neurons to disable during training, applied to each layer where `activation == 'dropout'`.\n  - *random_seed*: (hidden) Set to non-zero for repeatable random values.",
         "default": {
-          "learning_rate": 0.005,
-          "optimizer": "GradientDescentOptimizer",
-          "random_seed": 0,
+          "input_dim": 784,
+          "learning_rate": 0.01,
           "loss": "cross_entropy",
+          "optimizer": "GradientDescentOptimizer",
           "dropout": 0,
-          "input_dim": 784
+          "random_seed": 0
         }
       }
     },
     "inputs": {
       "predict": {
-        "description": "Create new predictions for un-labeled input tensor."
+        "description": "Create new predictions for un-labeled input tensor.\n  - *batch*: (array) Input data, rank-two tensor."
       },
       "test": {
-        "description": "Compare predictions for input tensor to labels, return accuracy and loss."
+        "description": "Compare predictions for input tensor to labels, return prediction and loss.\n  - *batch*: (array) Input data, rank-two tensor.\n  - *labels*: (array) Input labels, rank-two tensor."
       },
       "train": {
-        "description": "Compare predictions for input tensor to labels, return accuracy and loss, and optimze weights."
+        "description": "Compare predictions for input tensor to labels, return prediction and loss, and optimze network weights.\n  - *batch*: (array) Input data, rank-two tensor.\n  - *labels*: (array) Input labels, rank-two tensor."
       }
     },
     "outputs": {
       "default": {
-        "description": "A list of signals of equal length to input signals. Attribute values will be `None` if not applicable to the operation named by `input_id`."
+        "description": "A list of signals of equal length to input signals.\n  - *input_id*: (string) The input which processed this list of signals.\n  - *loss*: (float) The measured loss for this batch, will be `None` if `input_id == 'predict'`.\n  - *prediction*: (array) Tensor containing network output as predictions."
       }
     },
     "commands": {}
