@@ -1,3 +1,7 @@
+NOTICE:
+==========
+**The TensorFlow library is updated frequently, these blocks have been developed for and tested with v1.4.0**
+
 MNISTImageLoader
 ================
 Each signal processed loads the next `batch_size` images from the dataset corresponding to `input_id`. Output is a batch of flattened images in a rank-two tensor, with labels, ready to be used by a TensorFlow block.
