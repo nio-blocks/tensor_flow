@@ -34,7 +34,7 @@ class TestMNISTImageLoader(NIOBlockTestCase):
                 'batch': ANY,
                 'labels': ANY,
                 'input_id': ANY,
-                **test_signals[0].to_dict()}, # 'exclude_existing': False
+                **test_signals[0].to_dict()},  # 'exclude_existing': False
             self.last_notified[DEFAULT_TERMINAL][-1].to_dict())
         for i, arg in enumerate(
                 mock_dataset.return_value.train.next_batch.call_args_list):

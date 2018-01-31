@@ -24,7 +24,7 @@ class TestTensorFlowBlock(NIOBlockTestCase, tf.test.TestCase):
     @patch('tensorflow.summary')
     def test_process_train_signals(self, mock_summary, mock_sess):
         """Signals processed by 'train' input execute one training iteration"""
-        input_id='train'
+        input_id = 'train'
         # run() returns 3 values
         mock_sess.return_value.run.return_value = [MagicMock()] * 3
         blk = TensorFlow()
@@ -45,7 +45,7 @@ class TestTensorFlowBlock(NIOBlockTestCase, tf.test.TestCase):
     @patch('tensorflow.summary')
     def test_process_test_signals(self, mock_summary, mock_sess):
         """Signals processed by 'test' return loss"""
-        input_id='test'
+        input_id = 'test'
         # run() returns 2 values
         mock_sess.return_value.run.return_value = [MagicMock()] * 2
         blk = TensorFlow()
@@ -152,8 +152,8 @@ class TestTensorFlowBlock(NIOBlockTestCase, tf.test.TestCase):
         tb_tag = 'bar'
         blk = TensorFlow()
         self.configure_block(blk, {'models': {'tensorboard_int': 2,
-                                               'tensorboard_dir': tb_dir,
-                                               'tensorboard_tag': tb_tag},
+                                              'tensorboard_dir': tb_dir,
+                                              'tensorboard_tag': tb_tag},
                                    'layers': [{}, {}]})
         blk.start()
         blk.process_signals([Signal(train_input_signal)], input_id='train')
@@ -178,7 +178,7 @@ class TestTensorFlowBlock(NIOBlockTestCase, tf.test.TestCase):
     def test_layers_created(self):
         # create two layers and assert that the number of layers were
         # actually created
-        layer_config = {'layers': [{}, {},]}
+        layer_config = {'layers': [{}, {}]}
 
         blk = TensorFlow()
         self.configure_block(blk, layer_config)
@@ -241,6 +241,7 @@ class TestSignalEnrichment(NIOBlockTestCase):
         self.assertDictEqual(
             self.output_dict,
             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
+
 
 class TestVariableSaveAndLoad(NIOBlockTestCase):
 

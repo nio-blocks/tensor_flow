@@ -11,6 +11,7 @@ import tensorflow as tf
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # supress TF build warnings
 
+
 class LossFunctions(Enum):
     # todo: need a better way for user to define loss
     cross_entropy = 'cross_entropy'
@@ -95,6 +96,7 @@ class ModelManagement(PropertyHolder):
     tensorboard_dir = StringProperty(title='TensorBoard File Directory',
                                      default='tensorboard',
                                      visible=False)
+
 
 @input('predict')
 @input('test')
