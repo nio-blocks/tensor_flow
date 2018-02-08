@@ -26,12 +26,6 @@
         "type": "BoolType",
         "description": "(hidden) Randomize the order of each batch.",
         "default": true
-      },
-      "validation_size": {
-        "title": "Validation Size",
-        "type": "IntType",
-        "description": "(hidden) Number of images and labels to reserve from training data for cross-validation.",
-        "default": 0
       }
     },
     "inputs": {

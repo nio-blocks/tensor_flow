@@ -22,9 +22,6 @@ class MNISTImageLoader(EnrichSignals, Block):
     version = VersionProperty('0.2.0')
     batch_size = IntProperty(title='Images per Batch', default=100)
     shuffle = BoolProperty(title='Shuffle Batch', default=True, visible=False)
-    validation_size = IntProperty(title='Validation Size',
-                                  default=0,
-                                  visible=False)
 
     def __init__(self):
         super().__init__()
@@ -36,7 +33,7 @@ class MNISTImageLoader(EnrichSignals, Block):
             'data',
             one_hot=True,
             reshape=True,
-            validation_size=self.validation_size())
+            validation_size=0)
 
     def process_signals(self, signals, input_id=None):
         output_signals = []
