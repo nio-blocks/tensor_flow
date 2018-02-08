@@ -21,8 +21,7 @@ class TestTensorFlowBlock(NIOBlockTestCase, tf.test.TestCase):
         return sig
 
     @patch('tensorflow.Session')
-    @patch('tensorflow.summary')
-    def test_process_train_signals(self, mock_summary, mock_sess):
+    def test_process_train_signals(self, mock_sess):
         """Signals processed by 'train' input execute one training iteration"""
         input_id = 'train'
         # run() returns 3 values
@@ -42,8 +41,7 @@ class TestTensorFlowBlock(NIOBlockTestCase, tf.test.TestCase):
             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
 
     @patch('tensorflow.Session')
-    @patch('tensorflow.summary')
-    def test_process_test_signals(self, mock_summary, mock_sess):
+    def test_process_test_signals(self, mock_sess):
         """Signals processed by 'test' return loss"""
         input_id = 'test'
         # run() returns 2 values
@@ -63,8 +61,7 @@ class TestTensorFlowBlock(NIOBlockTestCase, tf.test.TestCase):
             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
 
     @patch('tensorflow.Session')
-    @patch('tensorflow.summary')
-    def test_process_predict_signals(self, mock_summary, mock_sess):
+    def test_process_predict_signals(self, mock_sess):
         """Signals processed by 'predict' return classification"""
         input_id = 'predict'
         blk = TensorFlow()
@@ -82,8 +79,7 @@ class TestTensorFlowBlock(NIOBlockTestCase, tf.test.TestCase):
             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
 
     @patch('tensorflow.Session')
-    @patch('tensorflow.summary')
-    def test_multi_input(self, mock_summary, mock_sess):
+    def test_multi_input(self, mock_sess):
         # these mocks are the return values from sess.run() for _train, _test,
         # and _predict methods in the block. These are expected to return loss
         loss = 0
@@ -203,8 +199,7 @@ class TestSignalLists(NIOBlockTestCase):
     input_signals = [Signal({'batch': MagicMock(), 'labels': MagicMock()})] * 2
 
     @patch('tensorflow.Session')
-    @patch('tensorflow.summary')
-    def test_process_signals(self, mock_summary, mock_sess):
+    def test_process_signals(self, mock_sess):
         """Notified signal list is equal length to input"""
         mock_sess.return_value.run.return_value = [MagicMock()] * 3
         blk = TensorFlow()
@@ -229,8 +224,7 @@ class TestSignalEnrichment(NIOBlockTestCase):
                    'input_id': 'train'}
 
     @patch('tensorflow.Session')
-    @patch('tensorflow.summary')
-    def test_enrich_mixin(self, mock_summary, mock_sess):
+    def test_enrich_mixin(self, mock_sess):
         mock_sess.return_value.run.return_value = [MagicMock()] * 3
         blk = TensorFlow()
         self.configure_block(blk, self.block_config)
@@ -250,8 +244,7 @@ class TestVariableSaveAndLoad(NIOBlockTestCase):
 
     @patch('tensorflow.Session')
     @patch('tensorflow.train')
-    @patch('tensorflow.summary')
-    def test_save_and_load(self, mock_summary, mock_train, mock_sess):
+    def test_save_and_load(self, mock_train, mock_sess):
         """A path is specified, variables are saved to and loaded from file"""
         session_obj = mock_sess.return_value = MagicMock()
         blk = TensorFlow()
@@ -269,8 +262,7 @@ class TestVariableSaveAndLoad(NIOBlockTestCase):
 
     @patch('tensorflow.Session')
     @patch('tensorflow.train')
-    @patch('tensorflow.summary')
-    def test_no_save_or_load(self, mock_summary, mock_train, mock_sess):
+    def test_no_save_or_load(self, mock_train, mock_sess):
         """No path is specified, variables are not saved nor loaded"""
         session_obj = mock_sess.return_value = MagicMock()
         blk = TensorFlow()
