@@ -3,8 +3,7 @@ import sys
 import re
 import tarfile
 import tensorflow as tf
-import cv2
-import PIL
+import base64
 import numpy as np
 from six.moves import urllib
 from nio.util.threading import spawn
@@ -18,53 +17,50 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # suppress TF build warnings
 class Inception(Block):
 
     version = VersionProperty('0.0.1')
-    num_top_predictions = IntProperty(title='Return Top k Predictions', default=20)
+    num_top_predictions = IntProperty(
+        title='Return Top k Predictions',
+        default=10)
 
     def __init__(self):
         super().__init__()
-        self._kill = False
-        self.video_thread = None
-        self.camera = None
-        self.DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
+        self.node_lookup = None
+        self.sess = None
 
-    def start(self):
-        super().start()
-        self.video_thread = spawn(self.classify_frames)
-
-    def stop(self):
-        self._kill = True
-        self.video_thread.join()
-        super().stop()
-
-    def classify_frames(self):
+    def configure(self, context):
+        super().configure(context)
         self.maybe_download_and_extract()
-        self.camera=cv2.VideoCapture(0)
-        with tf.Graph().as_default():
-            self.create_graph()
-            while not self._kill:
-                self.logger.debug('capturing frame')
-                _, frame = self.camera.read()
-                img = PIL.Image.fromarray(frame)
-                img.save('inception/webcam.jpg')
-                self.logger.debug('classifying image')
-                cloud = self.run_inference_on_image('inception/webcam.jpg')
-                if not self._kill:
-                    self.notify_signals([Signal({'wordcloud': cloud})])
-            self.camera.release()
+        self.node_lookup = NodeLookup()
+        self.sess = tf.Session(graph=self.create_graph())
+
+    # def start(self):
+        # with tf.Graph().as_default():
+            # self.create_graph()
+            # super().start()
+            # tensors are not being created inside graph
+
+    def process_signals(self, signals):
+        output_signals = []
+        for signal in signals:
+            image = signal.base64Image.lstrip('data:image/jpeg;base64')
+            image = base64.decodestring(image.encode('utf-8'))
+            predictions = self.run_inference_on_image(image)
+            output_signals.append(Signal({'predictions': predictions}))
+        self.notify_signals(output_signals)
 
     def maybe_download_and_extract(self):
         """Download and extract model tar file."""
+        DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
         dest_directory = 'inception'
         if not os.path.exists(dest_directory):
             os.makedirs(dest_directory)
-        filename = self.DATA_URL.split('/')[-1]
+        filename = DATA_URL.split('/')[-1]
         filepath = os.path.join(dest_directory, filename)
         if not os.path.exists(filepath):
             def _progress(count, block_size, total_size):
                 sys.stdout.write('\r>> Downloading %s %.1f%%' % (
                     filename, float(count * block_size) / float(total_size) * 100.0))
                 sys.stdout.flush()
-            filepath, _ = urllib.request.urlretrieve(self.DATA_URL, filepath, _progress)
+            filepath, _ = urllib.request.urlretrieve(DATA_URL, filepath, _progress)
             print()
             statinfo = os.stat(filepath)
             print('Successfully downloaded', filename, statinfo.st_size, 'bytes.')
@@ -72,34 +68,28 @@ class Inception(Block):
 
     def run_inference_on_image(self, image):
         """Runs inference on an image."""
-        image_data = tf.gfile.FastGFile(image, 'rb').read()
-        # self.create_graph()
-        with tf.Session() as sess:
-            softmax_tensor = sess.graph.get_tensor_by_name('softmax:0')
-            predictions = sess.run(softmax_tensor,
-                                   {'DecodeJpeg/contents:0': image_data})
-            predictions = np.squeeze(predictions)
-
-            # Creates node ID --> English string lookup.
-            node_lookup = NodeLookup()
-
-            top_k = predictions.argsort()[-self.num_top_predictions():][::-1]
-            cloud = []
-            for node_id in top_k:
-                human_string = node_lookup.id_to_string(node_id)
-                score = predictions[node_id]
-                cloud.append(
-                    {'text': human_string.split(',')[0], 'value': score * 10000})
-            self.logger.debug('%s (score = %.5f)' % (
-                node_lookup.id_to_string(top_k[0]), predictions[top_k[0]]))
-            return cloud
+        # with tf.Session() as self.sess:
+        softmax_tensor = self.sess.graph.get_tensor_by_name('softmax:0')
+        predictions = self.sess.run(softmax_tensor,
+                               {'DecodeJpeg/contents:0': image})
+        predictions = np.squeeze(predictions)
+        top_k = predictions.argsort()[-self.num_top_predictions():][::-1]
+        inference = []
+        for node_id in top_k:
+            human_string = self.node_lookup.id_to_string(node_id)
+            score = predictions[node_id]
+            inference.append(
+                {'text': human_string.split(',')[0], 'value': score })
+        self.logger.debug('%s (score = %.5f)' % (
+            self.node_lookup.id_to_string(top_k[0]), predictions[top_k[0]]))
+        return inference
 
     def create_graph(self):
         """Creates a graph from saved GraphDef file and returns a saver."""
         with tf.gfile.FastGFile('inception/classify_image_graph_def.pb', 'rb') as f:
             graph_def = tf.GraphDef()
             graph_def.ParseFromString(f.read())
-            _ = tf.import_graph_def(graph_def, name='')
+            return tf.import_graph_def(graph_def, name='')
 
 class NodeLookup(object):
     """Converts integer node ID's to human readable labels."""
