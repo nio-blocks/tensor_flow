@@ -8,13 +8,14 @@ import numpy as np
 from six.moves import urllib
 from nio.util.threading import spawn
 from nio.block.base import Block
+from nio.block.mixins.enrich.enrich_signals import EnrichSignals
 from nio.properties import VersionProperty, IntProperty
 from nio.signal.base import Signal
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # suppress TF build warnings
 
-class Inception(Block):
+class Inception(EnrichSignals, Block):
 
     version = VersionProperty('0.0.1')
     num_top_predictions = IntProperty(
@@ -32,19 +33,15 @@ class Inception(Block):
         self.node_lookup = NodeLookup()
         self.sess = tf.Session(graph=self.create_graph())
 
-    # def start(self):
-        # with tf.Graph().as_default():
-            # self.create_graph()
-            # super().start()
-            # tensors are not being created inside graph
-
     def process_signals(self, signals):
         output_signals = []
         for signal in signals:
             image = signal.base64Image.lstrip('data:image/jpeg;base64')
             image = base64.decodestring(image.encode('utf-8'))
             predictions = self.run_inference_on_image(image)
-            output_signals.append(Signal({'predictions': predictions}))
+            output_signal = self.get_output_signal(
+                {'predictions': predictions}, signal)
+            output_signals.append(output_signal)
         self.notify_signals(output_signals)
 
     def maybe_download_and_extract(self):
@@ -68,7 +65,6 @@ class Inception(Block):
 
     def run_inference_on_image(self, image):
         """Runs inference on an image."""
-        # with tf.Session() as self.sess:
         softmax_tensor = self.sess.graph.get_tensor_by_name('softmax:0')
         predictions = self.sess.run(softmax_tensor,
                                {'DecodeJpeg/contents:0': image})
