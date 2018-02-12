@@ -1,6 +1,33 @@
-NOTICE:
+Notice:
 ==========
-**The TensorFlow library is updated frequently, these blocks have been developed for and tested with v1.4.0**
+**The TensorFlow library is updated frequently**, these blocks have been developed for and tested with v1.4.0
+
+Inception
+=========
+Feed base64-encoded JPEG images to a pre-trained [InceptionV1 (GoogLeNet)](https://arxiv.org/abs/1409.4842) deep convolutional neural network for general classification. Based on TensorFlow's [ImageNet tutorial](https://github.com/tensorflow/models/tree/master/tutorials/image/imagenet)
+
+Properties
+----------
+- **enrich**: Signal Enrichment
+  - *exclude_existing*: If checked (true), the attributes of the incoming signal will be excluded from the outgoing signal. If unchecked (false), the attributes of the incoming signal will be included in the outgoing signal.
+  - *enrich_field*: (hidden) The attribute on the signal to store the results from this block. If this is empty, the results will be merged onto the incoming signal. This is the default operation. Having this field allows a block to 'save' the results of an operation to a single field on an incoming signal and notify the enriched signal.
+- **num_top_predictions**: Only the predictions with the highest values will be returned, limited to `k` predictions.
+
+Inputs
+------
+- **default**: Run inference on an image, generating predictions of image contents. 
+  - *base64Image*: (string) Input data, base64-encoded JPEG, any size.
+
+Outputs
+-------
+- **default**: A list of signals of equal length to input signals.
+  - *predictions* (array) Each element of the array is one prediction as `{"text": <prediction_label>, "value": (0, 1)}` in descending order of `value`. Length is limited to `num_top_predictions`.
+
+Commands
+--------
+None
+
+***
 
 MNISTImageLoader
 ================
