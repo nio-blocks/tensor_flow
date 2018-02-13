@@ -31,7 +31,6 @@ class Inception(EnrichSignals, Block):
         super().configure(context)
         self.maybe_download_and_extract()
         self.node_lookup = NodeLookup()
-        self.logger.debug('creating session')
         self.sess = tf.Session(graph=self.create_graph())
 
     def process_signals(self, signals):
@@ -54,7 +53,7 @@ class Inception(EnrichSignals, Block):
         DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
         dest_directory = 'inception'
         if not os.path.exists(dest_directory):
-            sekf.logger.debug('creating directory: inception')
+            self.logger.debug('creating directory: inception')
             os.makedirs(dest_directory)
         filename = DATA_URL.split('/')[-1]
         filepath = os.path.join(dest_directory, filename)
