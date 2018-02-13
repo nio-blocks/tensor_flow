@@ -16,8 +16,7 @@ class TestTensorFlowBlock(NIOBlockTestCase, tf.test.TestCase):
 
     def output_dict(self, input_id):
         sig = {'loss': ANY if input_id != 'predict' else None,
-               'accuracy': ANY if input_id != 'predict' else None,
-               'prediction': ANY if input_id == 'predict' else None,
+               'prediction': ANY,
                'input_id': input_id}
         return sig
 
@@ -43,7 +42,7 @@ class TestTensorFlowBlock(NIOBlockTestCase, tf.test.TestCase):
 
     @patch('tensorflow.Session')
     def test_process_test_signals(self, mock_sess):
-        """Signals processed by 'test' return accuracy and loss"""
+        """Signals processed by 'test' return loss"""
         input_id = 'test'
         # run() returns 2 values
         mock_sess.return_value.run.return_value = [MagicMock()] * 2
@@ -82,28 +81,18 @@ class TestTensorFlowBlock(NIOBlockTestCase, tf.test.TestCase):
     @patch('tensorflow.Session')
     def test_multi_input(self, mock_sess):
         # these mocks are the return values from sess.run() for _train, _test,
-        # and _predict methods in the block. These are expected to return
-        # acc, loss except _predict, which returns a single prediction
-        train_mock = MagicMock()
-        train_acc = 0
-        train_loss = 0
-        # mock list slicing to correctly return acc, loss
-        train_mock.__getitem__.return_value = [train_acc, train_loss]
+        # and _predict methods in the block. These are expected to return loss
+        loss = 0
+        prediction = 1
+        train_mock = [MagicMock(), loss, prediction]
+        test_mock = [loss, prediction]
+        predict_mock = prediction
 
-        test_mock = MagicMock()
-        test_acc = 0
-        test_loss = 0
-        test_mock.return_value = [test_acc, test_loss]
-
-        predict_mock = MagicMock()
-        prediction = 0
-        predict_mock.return_value = prediction
-
-        # global variable initialization, train, test, predict
+        # variable initialization, train, test, predict = 4 calls
         mock_sess.return_value.run.side_effect = [MagicMock(),
                                                   train_mock,
-                                                  test_mock(),
-                                                  predict_mock()]
+                                                  test_mock,
+                                                  predict_mock]
         # "batch" here should be a batch of input data to train with. This data
         # should not appear in test or predict. "Labels" is the corresponding
         # correct results for the given input
@@ -140,18 +129,60 @@ class TestTensorFlowBlock(NIOBlockTestCase, tf.test.TestCase):
             self.output_dict('predict'),
             self.last_notified[DEFAULT_TERMINAL][2].to_dict())
 
+    @patch('tensorflow.Session')
+    @patch('tensorflow.summary')
+    def test_tensorboard(self, mock_summary, mock_sess):
+        mock_graph = mock_sess.return_value.graph = MagicMock()
+        mock_FileWriter = mock_summary.FileWriter.return_value = MagicMock()
+        mock_merge_all = mock_summary.merge_all.return_value = MagicMock()
+        # run returns 4 values in train when tensorboard is enabled
+        train_return = [mock_merge_all] + [MagicMock()] * 3
+        # 4 calls to run() from global var init and three train steps
+        # second train step does not create TB record, returns 3 values
+        mock_sess.return_value.run.side_effect = [MagicMock(),
+                                                  train_return,
+                                                  [MagicMock()] * 3,
+                                                  train_return]
+        train_input_signal = {'batch': [], 'labels': []}
+        tb_dir = 'foo'
+        tb_tag = 'bar'
+        blk = TensorFlow()
+        self.configure_block(blk, {'models': {'tensorboard_int': 2,
+                                              'tensorboard_dir': tb_dir,
+                                              'tensorboard_tag': tb_tag},
+                                   'layers': [{}, {}]})
+        blk.start()
+        blk.process_signals([Signal(train_input_signal)], input_id='train')
+        blk.process_signals([Signal(train_input_signal)], input_id='train')
+        blk.process_signals([Signal(train_input_signal)], input_id='train')
+        blk.stop()
 
-class TestTensorFlowBlockMultiLayer(TestTensorFlowBlock):
+        # two histograms per layer
+        self.assertEqual(mock_summary.histogram.call_count, 4)
+        self.assertEqual(mock_summary.scalar.call_count, 1)
+        mock_summary.FileWriter.assert_called_once_with(
+            '{}/{}'.format(tb_dir, tb_tag), mock_graph)
+        self.assertEqual(mock_FileWriter.add_summary.call_count, 2)
+        self.assertEqual(
+            mock_FileWriter.add_summary.call_args_list[0][0],
+            (mock_merge_all, 0))
+        self.assertEqual(
+            mock_FileWriter.add_summary.call_args_list[1][0],
+            (mock_merge_all, 2))
+        mock_FileWriter.close.assert_called_once_with()
 
-    # test two layers
-    block_config = {
-        'layers': [{
-            "count": 10,
-            "activation": "softmax",
-            "initial_weights": "truncated_normal",
-            "bias": True
-        }]
-    }
+    def test_layers_created(self):
+        # create two layers and assert that the number of layers were
+        # actually created
+        layer_config = {'layers': [{}, {}]}
+
+        blk = TensorFlow()
+        self.configure_block(blk, layer_config)
+        blk.start()
+        blk.stop()
+
+        self.assertEqual(len(blk.layers()),
+                         self._get_number_of_layers(blk.sess))
 
     @staticmethod
     def _get_number_of_layers(sess):
@@ -160,34 +191,6 @@ class TestTensorFlowBlockMultiLayer(TestTensorFlowBlock):
                          sess.graph._nodes_by_name.keys()
                          if "layer" in name.split('/')[0]]
         return len(set(unique_layers))
-
-    def test_layers_created(self):
-        # create two layers and assert that the number of layers were
-        # actually created
-        block_config = {
-            'layers': [
-                {
-                    "count": 2,
-                    "activation": "softmax",
-                    "initial_weights": "truncated_normal",
-                    "bias": True
-                },
-                {
-                    "count": 2,
-                    "activation": "softmax",
-                    "initial_weights": "truncated_normal",
-                    "bias": True
-                },
-            ]
-        }
-
-        blk = TensorFlow()
-        self.configure_block(blk, block_config)
-        blk.start()
-        blk.stop()
-
-        self.assertEqual(len(blk.layers()),
-                         self._get_number_of_layers(blk.sess))
 
 
 class TestSignalLists(NIOBlockTestCase):
@@ -216,9 +219,8 @@ class TestSignalEnrichment(NIOBlockTestCase):
     input_signals = [Signal({'batch': MagicMock(), 'labels': MagicMock()})]
     output_dict = {'batch': input_signals[0].batch,
                    'labels': input_signals[0].labels,
-                   'accuracy': ANY,
                    'loss': ANY,
-                   'prediction': None,
+                   'prediction': ANY,
                    'input_id': 'train'}
 
     @patch('tensorflow.Session')
@@ -233,3 +235,40 @@ class TestSignalEnrichment(NIOBlockTestCase):
         self.assertDictEqual(
             self.output_dict,
             self.last_notified[DEFAULT_TERMINAL][0].to_dict())
+
+
+class TestVariableSaveAndLoad(NIOBlockTestCase):
+
+    save_path = 'path/to/save.ext'
+    load_path = 'path/to/load.ext'
+
+    @patch('tensorflow.Session')
+    @patch('tensorflow.train')
+    def test_save_and_load(self, mock_train, mock_sess):
+        """A path is specified, variables are saved to and loaded from file"""
+        session_obj = mock_sess.return_value = MagicMock()
+        blk = TensorFlow()
+        self.configure_block(blk, {'models': {'save_file': self.save_path,
+                                              'load_file': self.load_path}})
+        blk.start()
+        mock_train.Saver.assert_called_once_with(max_to_keep=None)
+        blk.stop()
+        mock_train.Saver.return_value.save.assert_called_once_with(
+            session_obj,
+            self.save_path)
+        mock_train.Saver.return_value.restore.assert_called_once_with(
+            session_obj,
+            self.load_path)
+
+    @patch('tensorflow.Session')
+    @patch('tensorflow.train')
+    def test_no_save_or_load(self, mock_train, mock_sess):
+        """No path is specified, variables are not saved nor loaded"""
+        session_obj = mock_sess.return_value = MagicMock()
+        blk = TensorFlow()
+        self.configure_block(blk, {'models': {'save_file': '',
+                                              'load_file': ''}})
+        blk.start()
+        blk.stop()
+        mock_train.Saver.return_value.save.assert_not_called()
+        mock_train.Saver.return_value.restore.assert_not_called()
