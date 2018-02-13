@@ -31,17 +31,22 @@ class Inception(EnrichSignals, Block):
         super().configure(context)
         self.maybe_download_and_extract()
         self.node_lookup = NodeLookup()
+        self.logger.debug('creating session')
         self.sess = tf.Session(graph=self.create_graph())
 
     def process_signals(self, signals):
         output_signals = []
         for signal in signals:
             image = signal.base64Image.lstrip('data:image/jpeg;base64')
+            self.logger.debug('decoding image')
             image = base64.decodestring(image.encode('utf-8'))
+            self.logger.debug('running inference')
             predictions = self.run_inference_on_image(image)
+            self.logger.debug('building output signal')
             output_signal = self.get_output_signal(
                 {'predictions': predictions}, signal)
             output_signals.append(output_signal)
+        self.logger.debug('notifying signals')
         self.notify_signals(output_signals)
 
     def maybe_download_and_extract(self):
@@ -49,10 +54,12 @@ class Inception(EnrichSignals, Block):
         DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
         dest_directory = 'inception'
         if not os.path.exists(dest_directory):
+            sekf.logger.debug('creating directory: inception')
             os.makedirs(dest_directory)
         filename = DATA_URL.split('/')[-1]
         filepath = os.path.join(dest_directory, filename)
         if not os.path.exists(filepath):
+            self.logger.debug('downloading model files')
             def _progress(count, block_size, total_size):
                 sys.stdout.write('\r>> Downloading %s %.1f%%' % (
                     filename, float(count * block_size) / float(total_size) * 100.0))
@@ -61,6 +68,7 @@ class Inception(EnrichSignals, Block):
             print()
             statinfo = os.stat(filepath)
             print('Successfully downloaded', filename, statinfo.st_size, 'bytes.')
+        self.logger.debug('extracting model files')
         tarfile.open(filepath, 'r:gz').extractall(dest_directory)
 
     def run_inference_on_image(self, image):
@@ -71,6 +79,7 @@ class Inception(EnrichSignals, Block):
         predictions = np.squeeze(predictions)
         top_k = predictions.argsort()[-self.num_top_predictions():][::-1]
         inference = []
+        self.logger.debug('mapping predictions to labels')
         for node_id in top_k:
             human_string = self.node_lookup.id_to_string(node_id)
             score = predictions[node_id]
@@ -82,6 +91,7 @@ class Inception(EnrichSignals, Block):
 
     def create_graph(self):
         """Creates a graph from saved GraphDef file and returns a saver."""
+        self.logger.debug('defining graph')
         with tf.gfile.FastGFile('inception/classify_image_graph_def.pb', 'rb') as f:
             graph_def = tf.GraphDef()
             graph_def.ParseFromString(f.read())
