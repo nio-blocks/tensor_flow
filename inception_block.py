@@ -52,7 +52,7 @@ class Inception(EnrichSignals, Block):
         DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
         dest_directory = 'inception'
         if not os.path.exists(dest_directory):
-            sef.logger.debug('creating directory: inception')
+            self.logger.debug('creating directory: inception')
             os.makedirs(dest_directory)
         filename = DATA_URL.split('/')[-1]
         filepath = os.path.join(dest_directory, filename)
