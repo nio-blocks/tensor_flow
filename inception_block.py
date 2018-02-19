@@ -36,9 +36,8 @@ class Inception(EnrichSignals, Block):
     def process_signals(self, signals):
         output_signals = []
         for signal in signals:
-            image = signal.base64Image.lstrip('data:image/jpeg;base64')
             self.logger.debug('decoding image')
-            image = base64.decodestring(image.encode('utf-8'))
+            image = base64.decodestring(signal.base64Image.encode('utf-8'))
             self.logger.debug('running inference')
             predictions = self.run_inference_on_image(image)
             self.logger.debug('building output signal')
@@ -53,7 +52,7 @@ class Inception(EnrichSignals, Block):
         DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
         dest_directory = 'inception'
         if not os.path.exists(dest_directory):
-            self.logger.debug('creating directory: inception')
+            sef.logger.debug('creating directory: inception')
             os.makedirs(dest_directory)
         filename = DATA_URL.split('/')[-1]
         filepath = os.path.join(dest_directory, filename)
@@ -73,8 +72,9 @@ class Inception(EnrichSignals, Block):
     def run_inference_on_image(self, image):
         """Runs inference on an image."""
         softmax_tensor = self.sess.graph.get_tensor_by_name('softmax:0')
-        predictions = self.sess.run(softmax_tensor,
-                               {'DecodeJpeg/contents:0': image})
+        predictions = self.sess.run(
+            softmax_tensor,
+            {'DecodeJpeg/contents:0': image})
         predictions = np.squeeze(predictions)
         top_k = predictions.argsort()[-self.num_top_predictions():][::-1]
         inference = []
