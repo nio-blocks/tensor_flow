@@ -17,7 +17,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # suppress TF build warnings
 
 class Inception(EnrichSignals, Block):
 
-    version = VersionProperty('0.0.1')
+    version = VersionProperty('0.1.0')
     num_top_predictions = IntProperty(
         title='Return Top k Predictions',
         default=10)
@@ -34,38 +34,31 @@ class Inception(EnrichSignals, Block):
         self.sess = tf.Session(graph=self.create_graph())
 
     def process_signals(self, signals):
-        output_signals = []
         for signal in signals:
             self.logger.debug('decoding image')
             image = base64.decodestring(signal.base64Image.encode('utf-8'))
             self.logger.debug('running inference')
             predictions = self.run_inference_on_image(image)
-            self.logger.debug('building output signal')
-            output_signal = self.get_output_signal(
-                {'predictions': predictions}, signal)
-            output_signals.append(output_signal)
-        self.logger.debug('notifying signals')
-        self.notify_signals(output_signals)
+            self.logger.debug('building output signals')
+            output_signals = []
+            for prediction in predictions:
+                output_signal = self.get_output_signal(prediction, signal)
+                output_signals.append(output_signal)
+            self.logger.debug('notifying signals')
+            self.notify_signals(output_signals)
 
     def maybe_download_and_extract(self):
         """Download and extract model tar file."""
         DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
-        dest_directory = 'inception'
+        dest_directory = 'tf_models'
         if not os.path.exists(dest_directory):
-            self.logger.debug('creating directory: inception')
+            self.logger.debug('creating directory: {}'.format(dest_directory))
             os.makedirs(dest_directory)
         filename = DATA_URL.split('/')[-1]
         filepath = os.path.join(dest_directory, filename)
         if not os.path.exists(filepath):
             self.logger.debug('downloading model files')
-            def _progress(count, block_size, total_size):
-                sys.stdout.write('\r>> Downloading %s %.1f%%' % (
-                    filename, float(count * block_size) / float(total_size) * 100.0))
-                sys.stdout.flush()
-            filepath, _ = urllib.request.urlretrieve(DATA_URL, filepath, _progress)
-            print()
-            statinfo = os.stat(filepath)
-            print('Successfully downloaded', filename, statinfo.st_size, 'bytes.')
+            filepath, _ = urllib.request.urlretrieve(DATA_URL, filepath)
         self.logger.debug('extracting model files')
         tarfile.open(filepath, 'r:gz').extractall(dest_directory)
 
@@ -83,7 +76,7 @@ class Inception(EnrichSignals, Block):
             human_string = self.node_lookup.id_to_string(node_id)
             score = predictions[node_id]
             inference.append(
-                {'text': human_string.split(',')[0], 'value': score })
+                {'label': human_string.split(',')[0], 'confidence': score })
         self.logger.debug('%s (score = %.5f)' % (
             self.node_lookup.id_to_string(top_k[0]), predictions[top_k[0]]))
         return inference
@@ -91,7 +84,7 @@ class Inception(EnrichSignals, Block):
     def create_graph(self):
         """Creates a graph from saved GraphDef file and returns a saver."""
         self.logger.debug('defining graph')
-        with tf.gfile.FastGFile('inception/classify_image_graph_def.pb', 'rb') as f:
+        with tf.gfile.FastGFile('tf_models/classify_image_graph_def.pb', 'rb') as f:
             graph_def = tf.GraphDef()
             graph_def.ParseFromString(f.read())
             return tf.import_graph_def(graph_def, name='')
@@ -101,9 +94,9 @@ class NodeLookup(object):
 
     def __init__(self, label_lookup_path=None, uid_lookup_path=None):
         if not label_lookup_path:
-            label_lookup_path = 'inception/imagenet_2012_challenge_label_map_proto.pbtxt'
+            label_lookup_path = 'tf_models/imagenet_2012_challenge_label_map_proto.pbtxt'
         if not uid_lookup_path:
-            uid_lookup_path = 'inception/imagenet_synset_to_human_label_map.txt'
+            uid_lookup_path = 'tf_models/imagenet_synset_to_human_label_map.txt'
         self.node_lookup = self.load(label_lookup_path, uid_lookup_path)
 
     def load(self, label_lookup_path, uid_lookup_path):
