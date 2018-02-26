@@ -78,8 +78,6 @@ class Inception(EnrichSignals, Block):
             score = predictions[node_id]
             inference.append(
                 {'label': human_string.split(',')[0], 'confidence': score })
-        self.logger.debug('%s (score = %.5f)' % (
-            self.node_lookup.id_to_string(top_k[0]), predictions[top_k[0]]))
         return inference
 
     def create_graph(self):
