@@ -11,17 +11,18 @@ Properties
 - **enrich**: Signal Enrichment
   - *exclude_existing*: If checked (true), the attributes of the incoming signal will be excluded from the outgoing signal. If unchecked (false), the attributes of the incoming signal will be included in the outgoing signal.
   - *enrich_field*: (hidden) The attribute on the signal to store the results from this block. If this is empty, the results will be merged onto the incoming signal. This is the default operation. Having this field allows a block to 'save' the results of an operation to a single field on an incoming signal and notify the enriched signal.
-- **num_top_predictions**: Only the predictions with the highest values will be returned, limited to `k` predictions.
+- **num_top_predictions**: Only the predictions with the highest values will be emitted as signals, limited to `k` predictions.
 
 Inputs
 ------
 - **default**: Run inference on an image, generating predictions of image contents. 
-  - *base64Image*: (string) Input data, base64-encoded JPEG, any size.
+  - *base64Image*: (string) Input data, base64-encoded JPEG. For stability, images should be at least 299 x 299px.
 
 Outputs
 -------
-- **default**: A list of signals of equal length to input signals.
-  - *predictions* (array) Each element of the array is one prediction as `{"text": <prediction_label>, "value": (0, 1)}` in descending order of `value`. Length is limited to `num_top_predictions`.
+- **default**: A list of signals of length `num_top_predictions`.
+  - *label* (string) Human-readable class label, truncated.
+  - *confidence* (float) Confidence score for the prediction.
 
 Commands
 --------

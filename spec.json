@@ -1,6 +1,6 @@
 {
   "nio/Inception": {
-    "version": "0.0.1",
+    "version": "0.1.0",
     "description": "Feed base64-encoded JPEG images to a pre-trained [InceptionV1 (GoogLeNet)](https://arxiv.org/abs/1409.4842) deep convolutional neural network for general classification. Based on TensorFlow's [ImageNet tutorial](https://github.com/tensorflow/models/tree/master/tutorials/image/imagenet)",
     "categories": [],
     "properties": {
@@ -16,18 +16,18 @@
       "num_top_predictions": {
         "title": "Return Top k Predictions",
         "type": "IntType",
-        "description": "Only the predictions with the highest values will be returned, limited to `k` predictions.",
+        "description": "Only the predictions with the highest values will be emitted as signals, limited to `k` predictions.",
         "default": 10
       }
     },
     "inputs": {
       "default": {
-        "description": "Run inference on an image, generating predictions of image contents. \n  - *base64Image*: (string) Input data, base64-encoded JPEG, any size."
+        "description": "Run inference on an image, generating predictions of image contents. \n  - *base64Image*: (string) Input data, base64-encoded JPEG. For stability, images should be at least 299 x 299px."
       }
     },
     "outputs": {
       "default": {
-        "description": "A list of signals of equal length to input signals.\n  - *predictions* (array) Each element of the array is one prediction as `{\"text\": <prediction_label>, \"value\": (0, 1)}` in descending order of `value`. Length is limited to `num_top_predictions`."
+        "description": "A list of signals of length `num_top_predictions`.\n  - *label* (string) Human-readable class label, truncated.\n  - *confidence* (float) Confidence score for the prediction."
       }
     },
     "commands": {}
