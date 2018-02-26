@@ -44,7 +44,8 @@ class Inception(EnrichSignals, Block):
             for prediction in predictions:
                 output_signal = self.get_output_signal(prediction, signal)
                 output_signals.append(output_signal)
-            self.logger.debug('notifying signals')
+            self.logger.debug(
+                'notifying {} signals'.format(len(output_signals)))
             self.notify_signals(output_signals)
 
     def maybe_download_and_extract(self):
