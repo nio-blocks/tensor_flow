@@ -115,7 +115,7 @@ class TensorFlow(EnrichSignals, Block):
     models = ObjectProperty(ModelManagement,
                             title='Model Management',
                             default=ModelManagement())
-    version = VersionProperty('0.4.0')
+    version = VersionProperty("0.4.0")
 
     def __init__(self):
         super().__init__()
