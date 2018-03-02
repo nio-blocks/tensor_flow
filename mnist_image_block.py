@@ -19,7 +19,7 @@ class MNISTImageLoader(EnrichSignals, Block):
     dataset corresponding to `input_id`.
     """
 
-    version = VersionProperty('0.2.0')
+    version = VersionProperty("0.2.0")
     batch_size = IntProperty(title='Images per Batch', default=100)
     shuffle = BoolProperty(title='Shuffle Batch', default=True, visible=False)
 
