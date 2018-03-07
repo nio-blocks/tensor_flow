@@ -58,9 +58,9 @@ class Inception(EnrichSignals, Block):
         filename = DATA_URL.split('/')[-1]
         filepath = os.path.join(dest_directory, filename)
         if not os.path.exists(filepath):
-            self.logger.debug('downloading model files')
+            self.logger.info('downloading model files')
             filepath, _ = urllib.request.urlretrieve(DATA_URL, filepath)
-        self.logger.debug('extracting model files')
+        self.logger.info('extracting model files')
         tarfile.open(filepath, 'r:gz').extractall(dest_directory)
 
     def run_inference_on_image(self, image):
