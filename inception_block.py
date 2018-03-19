@@ -65,20 +65,25 @@ class Inception(EnrichSignals, Block):
 
     def run_inference_on_image(self, image):
         """Runs inference on an image."""
-        softmax_tensor = self.sess.graph.get_tensor_by_name('softmax:0')
-        predictions = self.sess.run(
-            softmax_tensor,
-            {'DecodeJpeg/contents:0': image})
-        predictions = np.squeeze(predictions)
-        top_k = predictions.argsort()[-self.num_top_predictions():][::-1]
         inference = []
-        self.logger.debug('mapping predictions to labels')
-        for node_id in top_k:
-            human_string = self.node_lookup.id_to_string(node_id)
-            score = predictions[node_id]
-            inference.append(
-                {'label': human_string.split(',')[0], 'confidence': score })
-        return inference
+        if self.num_top_predictions():
+            nn_ouput = self.sess.graph.get_tensor_by_name('softmax:0')
+            predictions = self.sess.run(nn_ouput, {'DecodeJpeg/contents:0': image})
+            predictions = np.squeeze(predictions)
+            top_k = predictions.argsort()[-self.num_top_predictions():][::-1]
+            self.logger.debug('mapping predictions to labels')
+            for node_id in top_k:
+                human_string = self.node_lookup.id_to_string(node_id)
+                score = predictions[node_id]
+                inference.append(
+                    {'label': human_string.split(',')[0], 'confidence': score })
+            return inference
+        else:
+            nn_ouput = self.sess.graph.get_tensor_by_name('pool_3:0')
+            predictions = self.sess.run(nn_ouput, {'DecodeJpeg/contents:0': image})
+            predictions = np.squeeze(predictions)
+            inference.append({'logits': predictions})
+            return inference
 
     def create_graph(self):
         """Creates a graph from saved GraphDef file and returns a saver."""
