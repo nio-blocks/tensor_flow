@@ -1,4 +1,3 @@
-import os
 from enum import Enum
 from nio.block.base import Block
 from nio.block.terminals import input
@@ -8,9 +7,6 @@ from nio.properties import VersionProperty, FloatProperty, StringProperty, \
                            ListProperty, BoolProperty, ObjectProperty, \
                            Property
 import tensorflow as tf
-
-
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # supress TF build warnings
 
 
 class LossFunctions(Enum):
@@ -188,7 +184,7 @@ class TensorFlow(EnrichSignals, Block):
                         with tf.name_scope('biases'):
                             tf.summary.histogram('biases', b)
                     if i == (len(self.layers()) - 1):
-                        # calculate logits seperately for use by loss function
+                        # calculate logits separately for use by loss function
                         if layer.bias.value:
                             layers_logits[name + '_logits'] = \
                                 tf.matmul(XX, W) + b
