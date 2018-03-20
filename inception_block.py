@@ -9,11 +9,9 @@ from six.moves import urllib
 from nio.util.threading import spawn
 from nio.block.base import Block
 from nio.block.mixins.enrich.enrich_signals import EnrichSignals
-from nio.properties import VersionProperty, IntProperty
+from nio.properties import VersionProperty, IntProperty, BoolProperty
 from nio.signal.base import Signal
 
-
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # suppress TF build warnings
 
 class Inception(EnrichSignals, Block):
 
@@ -21,6 +19,9 @@ class Inception(EnrichSignals, Block):
     num_top_predictions = IntProperty(
         title='Return Top k Predictions',
         default=10)
+    bottleneck = BoolProperty(
+        title='Include pre-classification bottleneck',
+        default=False)
 
     def __init__(self):
         super().__init__()
@@ -66,29 +67,32 @@ class Inception(EnrichSignals, Block):
     def run_inference_on_image(self, image):
         """Runs inference on an image."""
         inference = []
+        output_tensor = self.sess.graph.get_tensor_by_name('softmax:0')
+        bottleneck_tensor = self.sess.graph.get_tensor_by_name('pool_3:0')
+        predictions, preclass = self.sess.run(
+            [output_tensor, bottleneck_tensor],
+            {'DecodeJpeg/contents:0': image})
+        predictions = np.squeeze(predictions)
+        preclass = np.squeeze(preclass)
         if self.num_top_predictions():
-            nn_ouput = self.sess.graph.get_tensor_by_name('softmax:0')
-            predictions = self.sess.run(nn_ouput, {'DecodeJpeg/contents:0': image})
-            predictions = np.squeeze(predictions)
             top_k = predictions.argsort()[-self.num_top_predictions():][::-1]
             self.logger.debug('mapping predictions to labels')
             for node_id in top_k:
                 human_string = self.node_lookup.id_to_string(node_id)
                 score = predictions[node_id]
-                inference.append(
-                    {'label': human_string.split(',')[0], 'confidence': score })
-            return inference
-        else:
-            nn_ouput = self.sess.graph.get_tensor_by_name('pool_3:0')
-            predictions = self.sess.run(nn_ouput, {'DecodeJpeg/contents:0': image})
-            predictions = np.squeeze(predictions)
-            inference.append({'logits': predictions})
-            return inference
+                prediction = {'label': human_string, 'confidence': score}
+                if self.bottleneck():
+                    prediction['bottleneck'] = preclass
+                inference.append(prediction)
+        elif self.bottleneck():
+            inference.append({'bottleneck': preclass})
+        return inference
 
     def create_graph(self):
         """Creates a graph from saved GraphDef file and returns a saver."""
         self.logger.debug('defining graph')
-        with tf.gfile.FastGFile('tf_models/classify_image_graph_def.pb', 'rb') as f:
+        with tf.gfile.FastGFile(
+                'tf_models/classify_image_graph_def.pb', 'rb') as f:
             graph_def = tf.GraphDef()
             graph_def.ParseFromString(f.read())
             return tf.import_graph_def(graph_def, name='')
