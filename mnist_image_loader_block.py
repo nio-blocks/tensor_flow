@@ -21,6 +21,7 @@ class MNISTImageLoader(EnrichSignals, Block):
 
     version = VersionProperty('0.2.0')
     batch_size = IntProperty(title='Images per Batch', default=100)
+    reshape = BoolProperty(title='Flatten Images', default=False)
     shuffle = BoolProperty(title='Shuffle Batch', default=True, visible=False)
 
     def __init__(self):
@@ -32,7 +33,7 @@ class MNISTImageLoader(EnrichSignals, Block):
         self.mnist = mnist_data.read_data_sets(
             'data',
             one_hot=True,
-            reshape=True,
+            reshape=self.reshape(),
             validation_size=0)
 
     def process_signals(self, signals, input_id=None):

@@ -4,7 +4,7 @@ from nio.block.terminals import DEFAULT_TERMINAL
 from nio.signal.base import Signal
 from nio.testing.block_test_case import NIOBlockTestCase
 
-from ..mnist_image_block import MNISTImageLoader
+from ..mnist_image_loader_block import MNISTImageLoader
 
 
 class TestMNISTImageLoader(NIOBlockTestCase):
@@ -26,7 +26,7 @@ class TestMNISTImageLoader(NIOBlockTestCase):
         mock_dataset.assert_called_once_with(
             'data',
             one_hot=True,
-            reshape=True,
+            reshape=False,
             validation_size=0)
         self.assert_num_signals_notified(len(train_signals + test_signals))
         self.assertDictEqual(
@@ -42,3 +42,16 @@ class TestMNISTImageLoader(NIOBlockTestCase):
         mock_dataset.return_value.test.next_batch.assert_called_once_with(
             batch_size=test_signals[0].batch_size,
             shuffle=False)
+
+    @patch('tensorflow.examples.tutorials.mnist.input_data.read_data_sets')
+    def test_reshape_images(self, mock_dataset):
+        """optionally flatten images"""
+        blk = MNISTImageLoader()
+        self.configure_block(blk, {'reshape': True})
+        blk.start()
+        blk.stop()
+        mock_dataset.assert_called_once_with(
+            'data',
+            one_hot=True,
+            reshape=True,
+            validation_size=0)
