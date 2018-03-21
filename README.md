@@ -63,7 +63,7 @@ Properties
   - *loss*: Loss function to quantify prediction accuracy.
   - *optimizer*: Optimizer algorithm to compute gradients and apply weight updates.
   - *dropout*: Percentage of this neurons to disable during training, applied to each layer where `activation == 'dropout'`.
-  - *random_seed*: (hidden) Set to non-zero for repeatable random values.
+  - *random_seed*: (hidden) Set a value for repeatable random values.
 
 Inputs
 ------

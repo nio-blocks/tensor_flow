@@ -5,7 +5,8 @@ from nio.block.terminals import input
 from nio.block.mixins.enrich.enrich_signals import EnrichSignals
 from nio.properties import VersionProperty, FloatProperty, StringProperty, \
                            PropertyHolder, IntProperty, SelectProperty, \
-                           ListProperty, BoolProperty, ObjectProperty
+                           ListProperty, BoolProperty, ObjectProperty, \
+                           Property
 import tensorflow as tf
 
 
@@ -84,7 +85,10 @@ class NetworkConfig(PropertyHolder):
                                default=Optimizers.GradientDescentOptimizer)
     dropout = FloatProperty(title='Dropout Percentage During Training',
                             default=0)
-    random_seed = IntProperty(title="Random Seed", default=0, visible=False)
+    random_seed = Property(title="Random Seed",
+                           default=None,
+                           allow_none=True,
+                           visible=False)
 
 
 class ModelManagement(PropertyHolder):
@@ -144,7 +148,8 @@ class TensorFlow(EnrichSignals, Block):
 
     def configure(self, context):
         super().configure(context)
-        tf.set_random_seed(self.network_config().random_seed())
+        if self.network_config().random_seed() != None:
+            tf.set_random_seed(self.network_config().random_seed())
         # input tensor shape
         shape = []
         for dim in self.network_config().input_dim():

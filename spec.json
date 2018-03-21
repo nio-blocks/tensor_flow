@@ -93,7 +93,7 @@
       "network_config": {
         "title": "ANN Configuration",
         "type": "ObjectType",
-        "description": "Hyperparameters of the artifical neural network.\n  - *input_dim*: Input data shape to first layer, as a list of dimensions. A value of `-1` indicates an unknwon dimension, such as `batch_size`.\n  - *learning_rate*: Multiplier for updates to weight values.\n  - *loss*: Loss function to quantify prediction accuracy.\n  - *optimizer*: Optimizer algorithm to compute gradients and apply weight updates.\n  - *dropout*: Percentage of this neurons to disable during training, applied to each layer where `activation == 'dropout'`.\n  - *random_seed*: (hidden) Set to non-zero for repeatable random values.",
+        "description": "Hyperparameters of the artifical neural network.\n  - *input_dim*: Input data shape to first layer, as a list of dimensions. A value of `-1` indicates an unknwon dimension, such as `batch_size`.\n  - *learning_rate*: Multiplier for updates to weight values.\n  - *loss*: Loss function to quantify prediction accuracy.\n  - *optimizer*: Optimizer algorithm to compute gradients and apply weight updates.\n  - *dropout*: Percentage of this neurons to disable during training, applied to each layer where `activation == 'dropout'`.\n  - *random_seed*: (hidden) Set a value for repeatable random values.",
         "default": {
           "input_dim": [
             {
@@ -113,7 +113,7 @@
           "loss": "cross_entropy",
           "optimizer": "GradientDescentOptimizer",
           "dropout": 0,
-          "random_seed": 0
+          "random_seed": null
         }
       }
     },
