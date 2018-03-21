@@ -12,6 +12,7 @@ Properties
 - **enrich**: Signal Enrichment
   - *exclude_existing*: If checked (true), the attributes of the incoming signal will be excluded from the outgoing signal. If unchecked (false), the attributes of the incoming signal will be included in the outgoing signal.
   - *enrich_field*: (hidden) The attribute on the signal to store the results from this block. If this is empty, the results will be merged onto the incoming signal. This is the default operation. Having this field allows a block to 'save' the results of an operation to a single field on an incoming signal and notify the enriched signal.
+- **reshape**: If checked (true), image batches will be reshaped from (`batch_size`, 28, 28, 1) to (`batch_size`, 784)
 - **shuffle**: (hidden) Randomize the order of each batch.
 
 Inputs
@@ -22,7 +23,7 @@ Inputs
 Outputs
 -------
 - **default**: A list of signals of equal length to input signals.
-  - *batch* (array) Flattened image data with shape (`batch_size`, 784).
+  - *batch* (array) `batch_size` images in an array, shape depends on the value of `reshape`.
   - *labels* (array) Image labels with shape (`batch_size`, 10).
 
 Commands
@@ -57,7 +58,7 @@ Properties
   - *tensorboard_tag*: (hidden) Run label, records will be saved to a subdirectory with this name inside `tensorboard_dir`. Default is a string of the current local time, as `YYYYMMDDHHMMSS`.
   - *tensorboard_dir*: (hidden) Path to event files, defaults to `<project>/tensorboard`.
 - **network_config**: Hyperparameters of the artifical neural network.
-  - *input_dim*: Number of input values to the first layer.
+  - *input_dim*: Input data shape to first layer, as a list of dimensions. A value of `-1` indicates an unknwon dimension, such as `batch_size`.
   - *learning_rate*: Multiplier for updates to weight values.
   - *loss*: Loss function to quantify prediction accuracy.
   - *optimizer*: Optimizer algorithm to compute gradients and apply weight updates.

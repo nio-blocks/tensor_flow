@@ -64,8 +64,17 @@ class Layers(PropertyHolder):
     bias = BoolProperty(title='Add Bias Unit', default=True)
 
 
+class Dimensions(PropertyHolder):
+    value = IntProperty(title='Dimension', default=-1)
+
+
 class NetworkConfig(PropertyHolder):
-    input_dim = IntProperty(title='Number of Inputs', default=784)
+    input_dim = ListProperty(Dimensions,
+                             title='Input Tensor Shape',
+                             default=[{'value': -1},
+                                      {'value': 28},
+                                      {'value': 28},
+                                      {'value': 1}])
     learning_rate = FloatProperty(title='Learning Rate', default=0.01)
     loss = SelectProperty(LossFunctions,
                           title='Loss Function',
@@ -120,6 +129,7 @@ class TensorFlow(EnrichSignals, Block):
     def __init__(self):
         super().__init__()
         self.X = None
+        self.XX = None
         self.Y_ = None
         self.prob_keep = None
         self.train_step = None
@@ -135,26 +145,38 @@ class TensorFlow(EnrichSignals, Block):
     def configure(self, context):
         super().configure(context)
         tf.set_random_seed(self.network_config().random_seed())
-        # input tensors shape
-        self.X = tf.placeholder(tf.float32,
-                                shape=[None,
-                                       self.network_config().input_dim()])
+        # input tensor shape
+        shape = []
+        for dim in self.network_config().input_dim():
+            if dim.value.value == -1:
+                shape.append(None)
+            else:
+                shape.append(dim.value.value)
+        self.X = tf.placeholder(tf.float32, shape=shape, name='INPUT')
         # specify desired output (labels)
-        self.Y_ = tf.placeholder(tf.float32,
-                                 shape=[None, self.layers()[-1].count()])
-        self.prob_keep = tf.placeholder(tf.float32)
+        shape = [None, self.layers()[-1].count()]
+        self.Y_ = tf.placeholder(tf.float32, shape=shape, name='LABELS')
+        self.prob_keep = tf.placeholder(tf.float32, name='PROB_KEEP')
         layers_logits = {}
         prev_layer = self.X
         for i, layer in enumerate(self.layers()):
             name = 'layer{}'.format(i)
             with tf.name_scope(name):
                 if layer.activation().value != 'dropout':
+                    flattened = 1
+                    for dim in prev_layer.shape:
+                        if dim.value != None:
+                            flattened *= dim.value
+                    # TODO: Flatten only if not convolutional layer
+                    XX = tf.reshape(prev_layer, [-1, flattened])
                     W = tf.Variable(
                         getattr(tf, layer.initial_weights().value)
-                        ([int(prev_layer.shape[-1]), layer.count()]))
+                        ([XX.shape[-1].value, layer.count()]),
+                        name='{}_WEIGHTS'.format(name))
                     b = tf.Variable(
                         getattr(tf, layer.initial_weights().value)
-                        ([layer.count()]))
+                        ([layer.count()]),
+                        name='{}_BIASES'.format(name))
                     if self.models().tensorboard_int():
                         with tf.name_scope('weights'):
                             tf.summary.histogram('weights', W)
@@ -164,19 +186,19 @@ class TensorFlow(EnrichSignals, Block):
                         # calculate logits seperately for use by loss function
                         if layer.bias.value:
                             layers_logits[name + '_logits'] = \
-                                tf.matmul(prev_layer, W) + b
+                                tf.matmul(XX, W) + b
                         else:
                             layers_logits[name + '_logits'] = \
-                                tf.matmul(prev_layer, W)
+                                tf.matmul(XX, W)
                         layers_logits[name] = getattr(
                             tf.nn,
                             layer.activation().value
                         )(layers_logits[name + '_logits'])
                     else:
                         if layer.bias.value:
-                            logits = tf.matmul(prev_layer, W) + b
+                            logits = tf.matmul(XX, W) + b
                         else:
-                            logits = tf.matmul(prev_layer, W)
+                            logits = tf.matmul(XX, W)
                         layers_logits[name] = \
                             getattr(tf.nn, layer.activation().value)(logits)
                 else:

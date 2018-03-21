@@ -21,6 +21,12 @@
           "exclude_existing": true
         }
       },
+      "reshape": {
+        "title": "Flatten Images",
+        "type": "BoolType",
+        "description": "If checked (true), image batches will be reshaped from (`batch_size`, 28, 28, 1) to (`batch_size`, 784)",
+        "default": false
+      },
       "shuffle": {
         "title": "Shuffle Batch",
         "type": "BoolType",
@@ -38,7 +44,7 @@
     },
     "outputs": {
       "default": {
-        "description": "A list of signals of equal length to input signals.\n  - *batch* (array) Flattened image data with shape (`batch_size`, 784).\n  - *labels* (array) Image labels with shape (`batch_size`, 10)."
+        "description": "A list of signals of equal length to input signals.\n  - *batch* (array) `batch_size` images in an array, shape depends on the value of `reshape`.\n  - *labels* (array) Image labels with shape (`batch_size`, 10)."
       }
     },
     "commands": {}
@@ -87,9 +93,22 @@
       "network_config": {
         "title": "ANN Configuration",
         "type": "ObjectType",
-        "description": "Hyperparameters of the artifical neural network.\n  - *input_dim*: Number of input values to the first layer.\n  - *learning_rate*: Multiplier for updates to weight values.\n  - *loss*: Loss function to quantify prediction accuracy.\n  - *optimizer*: Optimizer algorithm to compute gradients and apply weight updates.\n  - *dropout*: Percentage of this neurons to disable during training, applied to each layer where `activation == 'dropout'`.\n  - *random_seed*: (hidden) Set to non-zero for repeatable random values.",
+        "description": "Hyperparameters of the artifical neural network.\n  - *input_dim*: Input data shape to first layer, as a list of dimensions. A value of `-1` indicates an unknwon dimension, such as `batch_size`.\n  - *learning_rate*: Multiplier for updates to weight values.\n  - *loss*: Loss function to quantify prediction accuracy.\n  - *optimizer*: Optimizer algorithm to compute gradients and apply weight updates.\n  - *dropout*: Percentage of this neurons to disable during training, applied to each layer where `activation == 'dropout'`.\n  - *random_seed*: (hidden) Set to non-zero for repeatable random values.",
         "default": {
-          "input_dim": 784,
+          "input_dim": [
+            {
+              "value": -1
+            },
+            {
+              "value": 28
+            },
+            {
+              "value": 28
+            },
+            {
+              "value": 1
+            }
+          ],
           "learning_rate": 0.01,
           "loss": "cross_entropy",
           "optimizer": "GradientDescentOptimizer",

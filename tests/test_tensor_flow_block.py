@@ -184,6 +184,14 @@ class TestTensorFlowBlock(NIOBlockTestCase, tf.test.TestCase):
         self.assertEqual(len(blk.layers()),
                          self._get_number_of_layers(blk.sess))
 
+    def test_input_dimensions(self):
+        blk = TensorFlow()
+        shape = [{'value': -1}, {'value': 2048}]
+        self.configure_block(blk, {'network_config': {'input_dim': shape}})
+        blk.start()
+        blk.stop()
+        self.assertEqual(tuple(dim.value for dim in blk.X.shape), (None, 2048))
+
     @staticmethod
     def _get_number_of_layers(sess):
         """returns the number of created layers in a session"""
