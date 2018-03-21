@@ -2,7 +2,7 @@
   "nio/MNISTImageLoader": {
     "language": "Python",
     "url": "git://github.com/nio-blocks/tensor_flow.git",
-    "version": "0.2.0"
+    "version": "0.3.0"
   },
   "nio/TensorFlow": {
     "language": "Python",
