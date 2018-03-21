@@ -1,6 +1,6 @@
 {
   "nio/MNISTImageLoader": {
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "Each signal processed loads the next `batch_size` images from the dataset corresponding to `input_id`. Output is a batch of flattened images in a rank-two tensor, with labels, ready to be used by a TensorFlow block.",
     "categories": [
       "Machine Learning"
@@ -50,7 +50,7 @@
     "commands": {}
   },
   "nio/TensorFlow": {
-    "version": "0.4.0",
+    "version": "0.5.0",
     "description": "Accepts rank-two input tensors, each is fed-forward through a configured artificial neural network, which predicts values for each of its outputs. Training and testing data will be compared to their empirical labels and evaluated for loss as defined by the user. During training weights are updated through back-propogration, according to the optimizer selected. The default configuration is ready to take input from an MNISTImageLoader block, and will surpass 90% accuracy in about 2,000 training steps.",
     "categories": [
       "Machine Learning"
