@@ -15,7 +15,7 @@ Properties
 
 Inputs
 ------
-- **default**: Run inference on an image, generating predictions of image contents. 
+- **default**: Run inference on an image, generating predictions of image contents.
   - *base64Image*: (string) Input data, base64-encoded JPEG. For stability, images should be at least 299 x 299px.
 
 Outputs
