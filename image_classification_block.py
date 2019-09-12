@@ -13,7 +13,7 @@ from nio.properties import VersionProperty, IntProperty, BoolProperty
 from nio.signal.base import Signal
 
 
-class Inception(EnrichSignals, Block):
+class ImageClassification(EnrichSignals, Block):
 
     version = VersionProperty('0.1.0')
     num_top_predictions = IntProperty(
@@ -37,7 +37,7 @@ class Inception(EnrichSignals, Block):
     def process_signals(self, signals):
         for signal in signals:
             self.logger.debug('decoding image')
-            image = base64.decodestring(signal.base64Image.encode('utf-8'))
+            image = base64.decodestring(signal.image.encode('utf-8'))
             self.logger.debug('running inference')
             predictions = self.run_inference_on_image(image)
             self.logger.debug('building output signals')
