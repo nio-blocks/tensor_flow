@@ -2,7 +2,9 @@
   "nio/ImageClassification": {
     "version": "0.1.0",
     "description": "Feed base64-encoded JPEG images to a pre-trained [InceptionV1 (GoogLeNet)](https://arxiv.org/abs/1409.4842) deep convolutional neural network for general classification. Based on TensorFlow's [ImageNet tutorial](https://github.com/tensorflow/models/tree/master/tutorials/image/imagenet)",
-    "categories": [],
+    "categories": [
+      "Machine Learning"
+    ],
     "properties": {
       "enrich": {
         "title": "Signal Enrichment",
