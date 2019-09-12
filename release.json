@@ -4,6 +4,11 @@
     "url": "git://github.com/nio-blocks/tensor_flow.git",
     "version": "0.3.0"
   },
+  "nio/ImageClassification": {
+    "language": "Python",
+    "url": "git://github.com/nio-blocks/tensor_flow.git",
+    "version": "0.1.0"
+  },
   "nio/TensorFlow": {
     "language": "Python",
     "url": "git://github.com/nio-blocks/tensor_flow.git",

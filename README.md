@@ -1,6 +1,34 @@
-NOTICE:
+Notice:
 ==========
-**The TensorFlow library is updated frequently, these blocks have been developed for and tested with v1.4.0**
+**The TensorFlow library is updated frequently**, these blocks have been developed for and tested with v1.4.0
+
+ImageClassification
+=========
+Feed base64-encoded JPEG images to a pre-trained [InceptionV1 (GoogLeNet)](https://arxiv.org/abs/1409.4842) deep convolutional neural network for general classification. Based on TensorFlow's [ImageNet tutorial](https://github.com/tensorflow/models/tree/master/tutorials/image/imagenet)
+
+Properties
+----------
+- **enrich**: Signal Enrichment
+  - *exclude_existing*: If checked (true), the attributes of the incoming signal will be excluded from the outgoing signal. If unchecked (false), the attributes of the incoming signal will be included in the outgoing signal.
+  - *enrich_field*: (hidden) The attribute on the signal to store the results from this block. If this is empty, the results will be merged onto the incoming signal. This is the default operation. Having this field allows a block to 'save' the results of an operation to a single field on an incoming signal and notify the enriched signal.
+- **num_top_predictions**: Only the predictions with the highest values will be emitted as signals, limited to `k` predictions.
+
+Inputs
+------
+- **default**: Run inference on an image, generating predictions of image contents.
+  - *image*: (string) Input data, base64-encoded JPEG. For stability, images should be at least 299 x 299px.
+
+Outputs
+-------
+- **default**: A list of signals of length `num_top_predictions`.
+  - *label* (string) Human-readable class label, truncated.
+  - *confidence* (float) Confidence score for the prediction.
+
+Commands
+--------
+None
+
+***
 
 MNISTImageLoader
 ================
@@ -91,4 +119,3 @@ Dependencies
 ------------
 * [tensorflow](https://github.com/tensorflow/tensorflow)
 * [numpy](https://github.com/numpy/numpy)
-

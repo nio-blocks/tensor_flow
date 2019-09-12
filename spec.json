@@ -1,4 +1,37 @@
 {
+  "nio/ImageClassification": {
+    "version": "0.1.0",
+    "description": "Feed base64-encoded JPEG images to a pre-trained [InceptionV1 (GoogLeNet)](https://arxiv.org/abs/1409.4842) deep convolutional neural network for general classification. Based on TensorFlow's [ImageNet tutorial](https://github.com/tensorflow/models/tree/master/tutorials/image/imagenet)",
+    "categories": [],
+    "properties": {
+      "enrich": {
+        "title": "Signal Enrichment",
+        "type": "ObjectType",
+        "description": "Signal Enrichment\n  - *exclude_existing*: If checked (true), the attributes of the incoming signal will be excluded from the outgoing signal. If unchecked (false), the attributes of the incoming signal will be included in the outgoing signal.\n  - *enrich_field*: (hidden) The attribute on the signal to store the results from this block. If this is empty, the results will be merged onto the incoming signal. This is the default operation. Having this field allows a block to 'save' the results of an operation to a single field on an incoming signal and notify the enriched signal.",
+        "default": {
+          "enrich_field": "",
+          "exclude_existing": true
+        }
+      },
+      "num_top_predictions": {
+        "title": "Return Top k Predictions",
+        "type": "IntType",
+        "description": "Only the predictions with the highest values will be emitted as signals, limited to `k` predictions.",
+        "default": 10
+      }
+    },
+    "inputs": {
+      "default": {
+        "description": "Run inference on an image, generating predictions of image contents.\n  - *image*: (string) Input data, base64-encoded JPEG. For stability, images should be at least 299 x 299px."
+      }
+    },
+    "outputs": {
+      "default": {
+        "description": "A list of signals of length `num_top_predictions`.\n  - *label* (string) Human-readable class label, truncated.\n  - *confidence* (float) Confidence score for the prediction."
+      }
+    },
+    "commands": {}
+  },
   "nio/MNISTImageLoader": {
     "version": "0.3.0",
     "description": "Each signal processed loads the next `batch_size` images from the dataset corresponding to `input_id`. Output is a batch of flattened images in a rank-two tensor, with labels, ready to be used by a TensorFlow block.",
