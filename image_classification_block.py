@@ -79,7 +79,7 @@ class ImageClassification(EnrichSignals, Block):
             self.logger.debug('mapping predictions to labels')
             for node_id in top_k:
                 human_string = self.node_lookup.id_to_string(node_id)
-                score = predictions[node_id]
+                score = float(predictions[node_id])
                 prediction = {'label': human_string, 'confidence': score}
                 if self.bottleneck():
                     prediction['bottleneck'] = preclass
