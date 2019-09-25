@@ -5,6 +5,7 @@ import tarfile
 import tensorflow as tf
 import base64
 import numpy as np
+from copy import deepcopy
 from six.moves import urllib
 from nio.util.threading import spawn
 from nio.block.base import Block
@@ -43,7 +44,7 @@ class ImageClassification(EnrichSignals, Block):
             self.logger.debug('building output signals')
             output_signals = []
             for prediction in predictions:
-                output_signal = self.get_output_signal(prediction, signal)
+                output_signal = self.get_output_signal(prediction, deepcopy(signal))
                 output_signals.append(output_signal)
             self.logger.debug(
                 'notifying {} signals'.format(len(output_signals)))
